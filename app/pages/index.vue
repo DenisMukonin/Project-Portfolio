@@ -1,17 +1,17 @@
 <template>
   <div>
     <UPageHero
-      title="Nuxt Starter Template"
-      description="A production-ready starter template powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours."
+      title="Проект Портфолио"
+      description="Разрабатываем проект, позволяющий пользователям создавать собственную страницу-портфолио, где можно оформить и разместить резюме в привлекательном виде и делиться ссылкой на неё в других источниках."
       :links="[{
-        label: 'Get started',
-        to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
+        label: 'Посмотреть проект',
+        to: 'https://github.com/DenisMukonin/Project-Portfolio',
         target: '_blank',
         trailingIcon: 'i-lucide-arrow-right',
         size: 'xl'
       }, {
-        label: 'Use this template',
-        to: 'https://github.com/nuxt-ui-templates/starter',
+        label: 'Перейти на github',
+        to: 'https://github.com/DenisMukonin',
         target: '_blank',
         icon: 'i-simple-icons-github',
         size: 'xl',
@@ -20,7 +20,7 @@
       }]"
     />
 
-    <UPageSection
+    <!-- <UPageSection
       id="features"
       title="Everything you need to build modern Nuxt apps"
       description="Start with a solid foundation. This template includes all the essentials for building production-ready applications with Nuxt UI's powerful component system."
@@ -49,9 +49,9 @@
         title: 'Built for scale',
         description: 'Enterprise-ready architecture with proper error handling, SEO optimization, and security best practices built-in.'
       }]"
-    />
+    /> -->
 
-    <UPageSection>
+    <!-- <UPageSection>
       <UPageCTA
         title="Ready to build your next Nuxt app?"
         description="Join thousands of developers building with Nuxt and Nuxt UI. Get this template and start shipping today."
@@ -71,6 +71,6 @@
           variant: 'outline'
         }]"
       />
-    </UPageSection>
+    </UPageSection> -->
   </div>
 </template>
