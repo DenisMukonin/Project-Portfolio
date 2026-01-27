@@ -11,6 +11,15 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    databaseUrl: '',
+    github: {
+      clientId: '',
+      clientSecret: ''
+    },
+    sessionSecret: ''
+  },
+
   routeRules: {
     '/': { prerender: true }
   },

@@ -1,5 +1,13 @@
 {
   // https://nuxt.com/docs/guide/concepts/typescript
+  "compilerOptions": {
+    // Strict mode settings - explicitly enabled for documentation
+    // These are also set by Nuxt's generated configs but declared here for clarity
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true
+  },
   "files": [],
   "references": [
     { "path": "./.nuxt/tsconfig.app.json" },
