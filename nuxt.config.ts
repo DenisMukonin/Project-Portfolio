@@ -2,7 +2,8 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    'nuxt-auth-utils'
   ],
 
   devtools: {
@@ -13,15 +14,21 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     databaseUrl: '',
-    github: {
-      clientId: '',
-      clientSecret: ''
+    session: {
+      maxAge: 60 * 60 * 24 * 7, // NFR-S3: 7-day session expiry
+      password: ''
     },
-    sessionSecret: ''
+    oauth: {
+      github: {
+        clientId: '',
+        clientSecret: ''
+      }
+    }
   },
 
   routeRules: {
-    '/': { prerender: true }
+    '/': { ssr: true },
+    '/dashboard/**': { ssr: true }
   },
 
   compatibilityDate: '2025-01-15',

@@ -1,76 +1,55 @@
+<script setup lang="ts">
+const { loggedIn, user } = useUserSession()
+const route = useRoute()
+
+const authError = computed(() => route.query.error === 'github_auth_failed')
+</script>
+
 <template>
   <div>
     <UPageHero
       title="Проект Портфолио"
       description="Разрабатываем проект, позволяющий пользователям создавать собственную страницу-портфолио, где можно оформить и разместить резюме в привлекательном виде и делиться ссылкой на неё в других источниках."
-      :links="[{
-        label: 'Посмотреть проект',
-        to: 'https://github.com/DenisMukonin/Project-Portfolio',
-        target: '_blank',
-        trailingIcon: 'i-lucide-arrow-right',
-        size: 'xl'
-      }, {
-        label: 'Перейти на github',
-        to: 'https://github.com/DenisMukonin',
-        target: '_blank',
-        icon: 'i-simple-icons-github',
-        size: 'xl',
-        color: 'neutral',
-        variant: 'subtle'
-      }]"
+    >
+      <template #links>
+        <div class="flex flex-wrap justify-center gap-4">
+          <template v-if="loggedIn">
+            <UButton
+              :label="`Привет, ${user?.name || user?.username || 'Пользователь'}`"
+              to="/dashboard"
+              trailing-icon="i-lucide-arrow-right"
+              size="xl"
+            />
+          </template>
+          <template v-else>
+            <UButton
+              label="Войти через GitHub"
+              to="/auth/github"
+              icon="i-simple-icons-github"
+              size="xl"
+              external
+            />
+          </template>
+          <UButton
+            label="Перейти на GitHub"
+            to="https://github.com/DenisMukonin"
+            target="_blank"
+            icon="i-simple-icons-github"
+            size="xl"
+            color="neutral"
+            variant="subtle"
+          />
+        </div>
+      </template>
+    </UPageHero>
+
+    <UAlert
+      v-if="authError"
+      title="Ошибка авторизации"
+      description="Не удалось войти через GitHub. Пожалуйста, попробуйте еще раз."
+      color="error"
+      icon="i-lucide-alert-circle"
+      class="mx-auto max-w-md mt-8"
     />
-
-    <!-- <UPageSection
-      id="features"
-      title="Everything you need to build modern Nuxt apps"
-      description="Start with a solid foundation. This template includes all the essentials for building production-ready applications with Nuxt UI's powerful component system."
-      :features="[{
-        icon: 'i-lucide-rocket',
-        title: 'Production-ready from day one',
-        description: 'Pre-configured with TypeScript, ESLint, Tailwind CSS, and all the best practices. Focus on building features, not setting up tooling.'
-      }, {
-        icon: 'i-lucide-palette',
-        title: 'Beautiful by default',
-        description: 'Leveraging Nuxt UI\'s design system with automatic dark mode, consistent spacing, and polished components that look great out of the box.'
-      }, {
-        icon: 'i-lucide-zap',
-        title: 'Lightning fast',
-        description: 'Optimized for performance with SSR/SSG support, automatic code splitting, and edge-ready deployment. Your users will love the speed.'
-      }, {
-        icon: 'i-lucide-blocks',
-        title: '100+ components included',
-        description: 'Access Nuxt UI\'s comprehensive component library. From forms to navigation, everything is accessible, responsive, and customizable.'
-      }, {
-        icon: 'i-lucide-code-2',
-        title: 'Developer experience first',
-        description: 'Auto-imports, hot module replacement, and TypeScript support. Write less boilerplate and ship more features.'
-      }, {
-        icon: 'i-lucide-shield-check',
-        title: 'Built for scale',
-        description: 'Enterprise-ready architecture with proper error handling, SEO optimization, and security best practices built-in.'
-      }]"
-    /> -->
-
-    <!-- <UPageSection>
-      <UPageCTA
-        title="Ready to build your next Nuxt app?"
-        description="Join thousands of developers building with Nuxt and Nuxt UI. Get this template and start shipping today."
-        variant="subtle"
-        :links="[{
-          label: 'Start building',
-          to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
-          target: '_blank',
-          trailingIcon: 'i-lucide-arrow-right',
-          color: 'neutral'
-        }, {
-          label: 'View on GitHub',
-          to: 'https://github.com/nuxt-ui-templates/starter',
-          target: '_blank',
-          icon: 'i-simple-icons-github',
-          color: 'neutral',
-          variant: 'outline'
-        }]"
-      />
-    </UPageSection> -->
   </div>
 </template>
