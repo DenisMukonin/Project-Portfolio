@@ -4,7 +4,6 @@ import { users } from '../../db/schema'
 
 export default defineOAuthGitHubEventHandler({
   config: {
-    emailRequired: true,
     scope: ['user:email', 'read:user']
   },
   async onSuccess(event, { user: githubUser }) {
@@ -16,6 +15,7 @@ export default defineOAuthGitHubEventHandler({
     let dbUser = existingUser[0]
 
     if (!dbUser) {
+      // First login - create new user
       const [newUser] = await db.insert(users)
         .values({
           githubId: String(githubUser.id),
@@ -26,6 +26,19 @@ export default defineOAuthGitHubEventHandler({
         })
         .returning()
       dbUser = newUser!
+    } else {
+      // Repeat login - update profile with latest GitHub data
+      const [updatedUser] = await db.update(users)
+        .set({
+          email: githubUser.email,
+          name: githubUser.name,
+          username: githubUser.login,
+          avatarUrl: githubUser.avatar_url,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, dbUser.id))
+        .returning()
+      dbUser = updatedUser!
     }
 
     await setUserSession(event, {
