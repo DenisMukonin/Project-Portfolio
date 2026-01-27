@@ -14,32 +14,24 @@ useSeoMeta({
 
 <template>
   <div class="container mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-8">
-      <div class="flex items-center gap-4">
-        <UAvatar
-          v-if="user?.avatarUrl"
-          :src="user.avatarUrl"
-          :alt="user.name || user.username || 'User'"
-          size="lg"
+    <!-- Profile Section -->
+    <UCard class="mb-8">
+      <div class="flex items-center justify-between">
+        <UserProfileCard
+          :avatar-url="user?.avatarUrl ?? null"
+          :name="user?.name ?? null"
+          :username="user?.username ?? null"
+          :email="user?.email ?? null"
         />
-        <div>
-          <h1 class="text-2xl font-bold">
-            Добро пожаловать, {{ user?.name || user?.username || 'Пользователь' }}!
-          </h1>
-          <p class="text-gray-500 dark:text-gray-400">
-            {{ user?.email || `@${user?.username}` }}
-          </p>
-        </div>
+        <UButton
+          label="Выйти"
+          icon="i-lucide-log-out"
+          color="neutral"
+          variant="ghost"
+          @click="handleLogout"
+        />
       </div>
-
-      <UButton
-        label="Выйти"
-        icon="i-lucide-log-out"
-        color="neutral"
-        variant="ghost"
-        @click="handleLogout"
-      />
-    </div>
+    </UCard>
 
     <UCard>
       <template #header>
