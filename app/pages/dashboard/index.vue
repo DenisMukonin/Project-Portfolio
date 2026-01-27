@@ -23,13 +23,22 @@ useSeoMeta({
           :username="user?.username ?? null"
           :email="user?.email ?? null"
         />
-        <UButton
-          label="Выйти"
-          icon="i-lucide-log-out"
-          color="neutral"
-          variant="ghost"
-          @click="handleLogout"
-        />
+        <div class="flex items-center gap-2">
+          <UButton
+            to="/dashboard/settings"
+            icon="i-lucide-settings"
+            color="neutral"
+            variant="ghost"
+            square
+          />
+          <UButton
+            label="Выйти"
+            icon="i-lucide-log-out"
+            color="neutral"
+            variant="ghost"
+            @click="handleLogout"
+          />
+        </div>
       </div>
     </UCard>
 
