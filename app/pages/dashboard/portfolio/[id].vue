@@ -17,7 +17,8 @@ if (error.value) {
 const form = reactive({
   title: portfolio.value?.title || '',
   subtitle: portfolio.value?.subtitle || '',
-  description: portfolio.value?.description || ''
+  description: portfolio.value?.description || '',
+  slug: portfolio.value?.slug || ''
 })
 
 watch(() => portfolio.value, (newVal) => {
@@ -25,6 +26,7 @@ watch(() => portfolio.value, (newVal) => {
     form.title = newVal.title || ''
     form.subtitle = newVal.subtitle || ''
     form.description = newVal.description || ''
+    form.slug = newVal.slug || ''
   }
 }, { immediate: true })
 
@@ -35,7 +37,26 @@ const titleError = computed(() => {
   return ''
 })
 
-const isValid = computed(() => !titleError.value)
+const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/
+
+const slugError = computed(() => {
+  const slug = form.slug.trim().toLowerCase()
+  if (!slug) {
+    return 'URL slug обязателен'
+  }
+  if (slug.length < 3) {
+    return 'Slug должен быть не менее 3 символов'
+  }
+  if (slug.length > 50) {
+    return 'Slug должен быть не более 50 символов'
+  }
+  if (!SLUG_REGEX.test(slug)) {
+    return 'Только строчные буквы, цифры и дефисы'
+  }
+  return ''
+})
+
+const isValid = computed(() => !titleError.value && !slugError.value)
 
 const isSaving = ref(false)
 
@@ -51,7 +72,8 @@ async function handleSave() {
       body: {
         title: form.title,
         subtitle: form.subtitle || null,
-        description: form.description || null
+        description: form.description || null,
+        slug: form.slug.trim().toLowerCase()
       }
     })
     toast.add({
@@ -72,6 +94,10 @@ async function handleSave() {
   } finally {
     isSaving.value = false
   }
+}
+
+function normalizeSlugInput() {
+  form.slug = form.slug.toLowerCase().replace(/[^a-z0-9-]/g, '')
 }
 
 useSeoMeta({
@@ -141,6 +167,25 @@ useSeoMeta({
                 placeholder="Мое портфолио"
                 :color="titleError ? 'error' : undefined"
               />
+            </UFormField>
+
+            <UFormField
+              label="URL Slug"
+              :error="slugError"
+              required
+              hint="Строчные буквы, цифры и дефисы"
+            >
+              <UInput
+                v-model="form.slug"
+                placeholder="my-portfolio"
+                :color="slugError ? 'error' : undefined"
+                @input="normalizeSlugInput"
+              />
+              <template #description>
+                <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Публичный URL: <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">yoursite.com/{{ form.slug || 'your-slug' }}</code>
+                </div>
+              </template>
             </UFormField>
 
             <UFormField label="Подзаголовок">
