@@ -118,6 +118,7 @@ async function handleDelete() {
       description: message || 'Не удалось удалить портфолио',
       color: 'error'
     })
+    showDeleteDialog.value = false
   } finally {
     isDeleting.value = false
   }
@@ -269,7 +270,7 @@ useSeoMeta({
           </div>
         </UCard>
 
-        <UCard class="border-red-500 dark:border-red-400">
+        <UCard class="border border-red-500 dark:border-red-400">
           <template #header>
             <h2 class="text-lg font-semibold text-red-600 dark:text-red-400">
               Опасная зона
@@ -294,14 +295,16 @@ useSeoMeta({
 
     <UModal v-model:open="showDeleteDialog">
       <template #header>
-        <h3 class="text-lg font-semibold text-red-600">
+        <h3 class="text-lg font-semibold text-red-600 dark:text-red-400">
           Удалить портфолио?
         </h3>
       </template>
 
-      <p class="text-gray-600 dark:text-gray-400">
-        Вы уверены, что хотите удалить "{{ portfolio?.title }}"? Это действие необратимо.
-      </p>
+      <div class="p-4">
+        <p class="text-gray-600 dark:text-gray-400">
+          Вы уверены, что хотите удалить "{{ portfolio?.title }}"? Это действие необратимо.
+        </p>
+      </div>
 
       <template #footer>
         <div class="flex justify-end gap-2">
