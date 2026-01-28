@@ -1,9 +1,37 @@
 <script setup lang="ts">
 const { user, clear } = useUserSession()
+const toast = useToast()
+const isCreating = ref(false)
 
 async function handleLogout() {
   await clear()
   await navigateTo('/')
+}
+
+async function handleCreatePortfolio() {
+  isCreating.value = true
+  try {
+    const portfolio = await $fetch('/api/portfolios', { method: 'POST' })
+    toast.add({
+      title: 'Портфолио создано!',
+      description: 'Начните настройку своего портфолио.',
+      color: 'success'
+    })
+    if (portfolio?.id) {
+      await navigateTo(`/dashboard/portfolio/${portfolio.id}`)
+    }
+  } catch (error: unknown) {
+    const message = error && typeof error === 'object' && 'data' in error
+      ? (error.data as { message?: string })?.message
+      : 'Не удалось создать портфолио'
+    toast.add({
+      title: 'Ошибка',
+      description: message || 'Не удалось создать портфолио',
+      color: 'error'
+    })
+  } finally {
+    isCreating.value = false
+  }
 }
 
 useSeoMeta({
@@ -50,16 +78,16 @@ useSeoMeta({
       </template>
 
       <p class="text-gray-600 dark:text-gray-300">
-        Здесь вы сможете создавать и редактировать своё портфолио.
-        Эта функциональность будет добавлена в следующих историях.
+        Создайте своё профессиональное портфолио и поделитесь им с миром.
       </p>
 
       <template #footer>
         <div class="flex gap-2">
           <UButton
             label="Создать портфолио"
-            disabled
             icon="i-lucide-plus"
+            :loading="isCreating"
+            @click="handleCreatePortfolio"
           />
           <UButton
             label="Просмотреть шаблоны"
