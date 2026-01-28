@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import type { Portfolio } from '~~/server/db/schema/portfolios'
+
 const { user, clear } = useUserSession()
 const toast = useToast()
 const isCreating = ref(false)
+
+const { data: portfolioList, status, error, refresh } = await useFetch<Portfolio[]>('/api/portfolios')
 
 async function handleLogout() {
   await clear()
@@ -70,33 +74,89 @@ useSeoMeta({
       </div>
     </UCard>
 
-    <UCard>
+    <!-- Loading State -->
+    <UCard v-if="status === 'pending'">
+      <div
+        class="flex justify-center py-12"
+        role="status"
+        aria-label="Загрузка портфолио"
+      >
+        <UIcon
+          name="i-lucide-loader-2"
+          class="w-8 h-8 animate-spin text-gray-400"
+        />
+        <span class="sr-only">Загрузка...</span>
+      </div>
+    </UCard>
+
+    <!-- Error State -->
+    <UCard v-else-if="error">
+      <div class="text-center py-8">
+        <UIcon
+          name="i-lucide-alert-circle"
+          class="w-12 h-12 mx-auto text-red-500 mb-4"
+        />
+        <h3 class="text-lg font-semibold mb-2">
+          Не удалось загрузить портфолио
+        </h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">
+          {{ error.message || 'Произошла ошибка при загрузке данных' }}
+        </p>
+        <UButton
+          label="Попробовать снова"
+          icon="i-lucide-refresh-cw"
+          @click="refresh()"
+        />
+      </div>
+    </UCard>
+
+    <!-- Empty State -->
+    <UCard v-else-if="!portfolioList?.length">
+      <div class="text-center py-8">
+        <UIcon
+          name="i-lucide-folder-open"
+          class="w-12 h-12 mx-auto text-gray-400 mb-4"
+        />
+        <h3 class="text-lg font-semibold mb-2">
+          У вас пока нет портфолио
+        </h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">
+          Создайте своё первое профессиональное портфолио и поделитесь им с миром.
+        </p>
+        <UButton
+          label="Создать портфолио"
+          icon="i-lucide-plus"
+          size="lg"
+          :loading="isCreating"
+          @click="handleCreatePortfolio"
+        />
+      </div>
+    </UCard>
+
+    <!-- Portfolio List -->
+    <UCard v-else>
       <template #header>
-        <h2 class="text-lg font-semibold">
-          Ваше портфолио
-        </h2>
-      </template>
-
-      <p class="text-gray-600 dark:text-gray-300">
-        Создайте своё профессиональное портфолио и поделитесь им с миром.
-      </p>
-
-      <template #footer>
-        <div class="flex gap-2">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold">
+            Ваши портфолио
+          </h2>
           <UButton
-            label="Создать портфолио"
+            label="Создать"
             icon="i-lucide-plus"
+            size="sm"
             :loading="isCreating"
             @click="handleCreatePortfolio"
           />
-          <UButton
-            label="Просмотреть шаблоны"
-            disabled
-            icon="i-lucide-layout-template"
-            variant="outline"
-          />
         </div>
       </template>
+
+      <div class="space-y-4">
+        <PortfolioCard
+          v-for="portfolio in portfolioList"
+          :key="portfolio.id"
+          :portfolio="portfolio"
+        />
+      </div>
     </UCard>
   </div>
 </template>
