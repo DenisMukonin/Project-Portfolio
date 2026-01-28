@@ -13,12 +13,12 @@ defineProps<{
   >
     <UCard class="hover:ring-2 hover:ring-primary-500 transition-all cursor-pointer">
       <div class="flex items-center justify-between">
-        <div>
-          <h3 class="font-semibold text-lg">
+        <div class="min-w-0 flex-1">
+          <p class="font-semibold text-lg truncate">
             {{ portfolio.title }}
-          </h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            /{{ portfolio.slug }} · {{ portfolio.template }}
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
+            <span class="opacity-60">yoursite.com</span>/{{ portfolio.slug }} · {{ portfolio.template }}
           </p>
         </div>
         <UBadge
