@@ -59,6 +59,8 @@ const slugError = computed(() => {
 const isValid = computed(() => !titleError.value && !slugError.value)
 
 const isSaving = ref(false)
+const showDeleteDialog = ref(false)
+const isDeleting = ref(false)
 
 async function handleSave() {
   if (!isValid.value) {
@@ -93,6 +95,31 @@ async function handleSave() {
     })
   } finally {
     isSaving.value = false
+  }
+}
+
+async function handleDelete() {
+  isDeleting.value = true
+  try {
+    await $fetch(`/api/portfolios/${portfolioId}`, { method: 'DELETE' })
+    toast.add({
+      title: 'Удалено!',
+      description: 'Портфолио успешно удалено.',
+      color: 'success'
+    })
+    showDeleteDialog.value = false
+    await navigateTo('/dashboard')
+  } catch (err: unknown) {
+    const message = err && typeof err === 'object' && 'data' in err
+      ? (err.data as { message?: string })?.message
+      : 'Не удалось удалить портфолио'
+    toast.add({
+      title: 'Ошибка',
+      description: message || 'Не удалось удалить портфолио',
+      color: 'error'
+    })
+  } finally {
+    isDeleting.value = false
   }
 }
 
@@ -241,7 +268,58 @@ useSeoMeta({
             </div>
           </div>
         </UCard>
+
+        <UCard class="border-red-500 dark:border-red-400">
+          <template #header>
+            <h2 class="text-lg font-semibold text-red-600 dark:text-red-400">
+              Опасная зона
+            </h2>
+          </template>
+
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Удаление портфолио необратимо. Все данные будут потеряны.
+          </p>
+
+          <UButton
+            label="Удалить портфолио"
+            icon="i-lucide-trash-2"
+            color="error"
+            variant="outline"
+            block
+            @click="showDeleteDialog = true"
+          />
+        </UCard>
       </div>
     </div>
+
+    <UModal v-model:open="showDeleteDialog">
+      <template #header>
+        <h3 class="text-lg font-semibold text-red-600">
+          Удалить портфолио?
+        </h3>
+      </template>
+
+      <p class="text-gray-600 dark:text-gray-400">
+        Вы уверены, что хотите удалить "{{ portfolio?.title }}"? Это действие необратимо.
+      </p>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton
+            label="Отмена"
+            color="neutral"
+            variant="ghost"
+            @click="showDeleteDialog = false"
+          />
+          <UButton
+            label="Удалить"
+            icon="i-lucide-trash-2"
+            color="error"
+            :loading="isDeleting"
+            @click="handleDelete"
+          />
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
