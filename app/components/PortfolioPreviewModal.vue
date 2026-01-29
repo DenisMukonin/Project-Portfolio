@@ -13,6 +13,7 @@ const props = defineProps<{
   userTitle?: string | null
   userBio?: string | null
   userSocialLinks?: SocialLinks | null
+  userAvatarUrl?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -102,6 +103,7 @@ watch(() => props.open, (isOpen) => {
           :user-title="userTitle"
           :user-bio="userBio"
           :user-social-links="userSocialLinks"
+          :user-avatar-url="userAvatarUrl"
         />
         <!-- Loading skeleton when template is not yet available -->
         <div

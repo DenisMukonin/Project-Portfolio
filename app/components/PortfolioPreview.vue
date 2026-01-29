@@ -12,6 +12,7 @@ const props = defineProps<{
   userTitle?: string | null
   userBio?: string | null
   userSocialLinks?: SocialLinks | null
+  userAvatarUrl?: string | null
 }>()
 
 // Number of placeholder items to show in future sections (Projects, Experience)
@@ -107,12 +108,19 @@ const hasSocialLinks = computed(() =>
   >
     <!-- Hero Section -->
     <div class="flex flex-col items-center justify-center p-8 md:p-12 text-center">
-      <!-- Avatar placeholder -->
+      <!-- Avatar -->
       <div
-        class="w-24 h-24 md:w-32 md:h-32 rounded-full mb-6 flex items-center justify-center"
+        class="w-24 h-24 md:w-32 md:h-32 rounded-full mb-6 flex items-center justify-center overflow-hidden"
         :class="avatarStyles"
       >
+        <img
+          v-if="userAvatarUrl"
+          :src="userAvatarUrl"
+          :alt="displayTitle"
+          class="w-full h-full object-cover"
+        >
         <UIcon
+          v-else
           name="i-lucide-user"
           class="w-12 h-12 md:w-16 md:h-16"
           :class="avatarIconStyles"

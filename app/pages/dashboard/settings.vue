@@ -27,6 +27,14 @@ const socialLinksErrors = reactive({
 const isDeleteModalOpen = ref(false)
 const isDeleting = ref(false)
 
+const avatarInput = ref<HTMLInputElement | null>(null)
+const isUploadingAvatar = ref(false)
+const avatarError = ref('')
+const avatarPreview = ref<string | null>(null)
+
+const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024
+
 const MAX_NAME_LENGTH = 100
 const MAX_TITLE_LENGTH = 100
 const MAX_BIO_LENGTH = 1000
@@ -37,6 +45,83 @@ const bioCharacterCount = computed(() => bio.value.length)
 const hasSocialLinksErrors = computed(() =>
   Object.values(socialLinksErrors).some(error => !!error)
 )
+
+const isCustomAvatar = computed(() =>
+  user.value?.avatarUrl && !user.value.avatarUrl.includes('githubusercontent.com')
+)
+
+function triggerAvatarUpload() {
+  avatarInput.value?.click()
+}
+
+async function handleAvatarChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file) return
+
+  if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+    avatarError.value = 'Неверный формат. Допустимы: JPG, PNG, GIF, WebP'
+    return
+  }
+
+  if (file.size > MAX_AVATAR_SIZE) {
+    avatarError.value = 'Файл слишком большой. Максимум 2MB'
+    return
+  }
+
+  avatarError.value = ''
+  avatarPreview.value = URL.createObjectURL(file)
+
+  isUploadingAvatar.value = true
+  try {
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    await $fetch('/api/users/avatar', {
+      method: 'POST',
+      body: formData
+    })
+
+    await refreshSession()
+
+    if (avatarPreview.value) {
+      URL.revokeObjectURL(avatarPreview.value)
+    }
+    avatarPreview.value = null
+
+    toast.add({
+      title: 'Аватар обновлён',
+      color: 'success'
+    })
+  } catch {
+    avatarError.value = 'Не удалось загрузить аватар'
+  } finally {
+    isUploadingAvatar.value = false
+    input.value = ''
+  }
+}
+
+async function resetToGitHubAvatar() {
+  isUploadingAvatar.value = true
+  try {
+    await $fetch('/api/users/avatar', { method: 'DELETE' })
+    await refreshSession()
+
+    toast.add({
+      title: 'Аватар сброшен на GitHub',
+      color: 'success'
+    })
+  } catch {
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось сбросить аватар',
+      color: 'error'
+    })
+  } finally {
+    isUploadingAvatar.value = false
+  }
+}
 
 function validateName(name: string): boolean {
   if (name.length > MAX_NAME_LENGTH) {
@@ -189,6 +274,71 @@ useSeoMeta({
         Настройки аккаунта
       </h1>
     </div>
+
+    <!-- Avatar Section -->
+    <UCard class="mb-8">
+      <template #header>
+        <h2 class="text-lg font-semibold">
+          Аватар
+        </h2>
+      </template>
+
+      <div class="flex items-center gap-6">
+        <div class="relative">
+          <UAvatar
+            :src="avatarPreview || user?.avatarUrl || undefined"
+            :alt="user?.name || user?.username || 'User'"
+            size="3xl"
+          />
+          <div
+            v-if="isUploadingAvatar"
+            class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full"
+          >
+            <UIcon
+              name="i-lucide-loader-2"
+              class="w-8 h-8 text-white animate-spin"
+            />
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <input
+            ref="avatarInput"
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            class="hidden"
+            @change="handleAvatarChange"
+          >
+
+          <UButton
+            label="Загрузить аватар"
+            icon="i-lucide-upload"
+            :loading="isUploadingAvatar"
+            @click="triggerAvatarUpload"
+          />
+
+          <UButton
+            v-if="isCustomAvatar"
+            label="Сбросить на GitHub"
+            icon="i-simple-icons-github"
+            variant="ghost"
+            :loading="isUploadingAvatar"
+            @click="resetToGitHubAvatar"
+          />
+
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            JPG, PNG, GIF или WebP. Максимум 2MB.
+          </p>
+
+          <p
+            v-if="avatarError"
+            class="text-sm text-red-500"
+          >
+            {{ avatarError }}
+          </p>
+        </div>
+      </div>
+    </UCard>
 
     <!-- Account Info -->
     <UCard class="mb-8">
