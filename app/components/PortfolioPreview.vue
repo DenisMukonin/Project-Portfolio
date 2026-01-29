@@ -8,6 +8,7 @@ const props = defineProps<{
     subtitle?: string
     description?: string
   }
+  userTitle?: string | null
 }>()
 
 // Number of placeholder items to show in future sections (Projects, Experience)
@@ -16,7 +17,7 @@ const PLACEHOLDER_ITEMS_COUNT = 2
 
 // Fallback data when portfolio fields are empty
 const displayTitle = computed(() => props.portfolioData.title || 'Ваше имя')
-const displaySubtitle = computed(() => props.portfolioData.subtitle || 'Ваша профессия')
+const displaySubtitle = computed(() => props.userTitle || props.portfolioData.subtitle || 'Ваша профессия')
 const displayDescription = computed(() =>
   props.portfolioData.description || 'Здесь будет ваше описание. Расскажите о себе и своих навыках.'
 )

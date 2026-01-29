@@ -4,6 +4,7 @@ import { getTemplateById, type TemplateDefinition } from '~~/shared/templates'
 
 const route = useRoute()
 const toast = useToast()
+const { user } = useUserSession()
 const portfolioId = route.params.id as string
 
 const { data: portfolio, status, error, refresh } = await useFetch<Portfolio>(`/api/portfolios/${portfolioId}`)
@@ -466,6 +467,7 @@ useSeoMeta({
       v-model:open="showPortfolioPreview"
       :template="currentTemplateDefinition"
       :portfolio-data="portfolioPreviewData"
+      :user-title="user?.title"
       @close="showPortfolioPreview = false"
     />
   </div>

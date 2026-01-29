@@ -54,6 +54,7 @@ useSeoMeta({
           :name="user?.name ?? null"
           :username="user?.username ?? null"
           :email="user?.email ?? null"
+          :title="user?.title ?? null"
         />
         <div class="flex items-center gap-2">
           <UButton

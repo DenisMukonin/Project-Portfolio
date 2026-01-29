@@ -2,30 +2,52 @@ import { eq } from 'drizzle-orm'
 import { db } from '~~/server/utils/db'
 import { users } from '~~/server/db/schema'
 
+const MAX_FIELD_LENGTH = 100
+
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
 
   const body = await readBody(event)
 
-  if (body.name !== undefined && body.name !== null) {
-    if (typeof body.name !== 'string') {
+  // Build update object - only include fields that were explicitly sent
+  const updateData: { name?: string | null, title?: string | null, updatedAt: Date } = {
+    updatedAt: new Date()
+  }
+
+  // Validate and add name if provided
+  if (body.name !== undefined) {
+    if (body.name !== null && typeof body.name !== 'string') {
       throw createError({ statusCode: 400, message: 'Name must be a string' })
     }
 
-    if (body.name.length > 100) {
-      throw createError({ statusCode: 400, message: 'Name must be 100 characters or less' })
+    const nameValue = typeof body.name === 'string' ? body.name.trim() : null
+
+    if (nameValue && nameValue.length > MAX_FIELD_LENGTH) {
+      throw createError({ statusCode: 400, message: `Name must be ${MAX_FIELD_LENGTH} characters or less` })
     }
+
+    updateData.name = nameValue || null
   }
 
-  const nameValue = body.name?.trim() || null
+  // Validate and add title if provided
+  if (body.title !== undefined) {
+    if (body.title !== null && typeof body.title !== 'string') {
+      throw createError({ statusCode: 400, message: 'Title must be a string' })
+    }
+
+    const titleValue = typeof body.title === 'string' ? body.title.trim() : null
+
+    if (titleValue && titleValue.length > MAX_FIELD_LENGTH) {
+      throw createError({ statusCode: 400, message: `Title must be ${MAX_FIELD_LENGTH} characters or less` })
+    }
+
+    updateData.title = titleValue || null
+  }
 
   try {
     const [updatedUser] = await db
       .update(users)
-      .set({
-        name: nameValue,
-        updatedAt: new Date()
-      })
+      .set(updateData)
       .where(eq(users.id, session.user.id))
       .returning()
 

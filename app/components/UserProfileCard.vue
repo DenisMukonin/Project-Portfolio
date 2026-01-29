@@ -4,6 +4,7 @@ defineProps<{
   name: string | null
   username: string | null
   email?: string | null
+  title?: string | null
 }>()
 </script>
 
@@ -18,6 +19,12 @@ defineProps<{
       <h2 class="text-xl font-bold">
         {{ name || username || 'User' }}
       </h2>
+      <p
+        v-if="title"
+        class="text-gray-600 dark:text-gray-300"
+      >
+        {{ title }}
+      </p>
       <p
         v-if="username"
         class="text-gray-500 dark:text-gray-400"

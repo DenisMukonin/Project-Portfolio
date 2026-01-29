@@ -9,6 +9,7 @@ const props = defineProps<{
     subtitle?: string
     description?: string
   }
+  userTitle?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -95,6 +96,7 @@ watch(() => props.open, (isOpen) => {
           v-if="template"
           :template="template"
           :portfolio-data="portfolioData"
+          :user-title="userTitle"
         />
         <!-- Loading skeleton when template is not yet available -->
         <div

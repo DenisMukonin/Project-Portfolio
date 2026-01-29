@@ -3,8 +3,10 @@ const { user, clear, fetch: refreshSession } = useUserSession()
 const toast = useToast()
 
 const displayName = ref(user.value?.name || '')
+const professionalTitle = ref(user.value?.title || '')
 const isSaving = ref(false)
 const validationError = ref('')
+const titleValidationError = ref('')
 
 const isDeleteModalOpen = ref(false)
 const isDeleting = ref(false)
@@ -20,8 +22,20 @@ function validateName(name: string): boolean {
   return true
 }
 
+function validateTitle(title: string): boolean {
+  if (title.length > MAX_NAME_LENGTH) {
+    titleValidationError.value = 'Профессия не может быть длиннее 100 символов'
+    return false
+  }
+  titleValidationError.value = ''
+  return true
+}
+
 async function handleSaveProfile() {
-  if (!validateName(displayName.value)) {
+  const nameValid = validateName(displayName.value)
+  const titleValid = validateTitle(professionalTitle.value)
+
+  if (!nameValid || !titleValid) {
     return
   }
 
@@ -29,7 +43,10 @@ async function handleSaveProfile() {
   try {
     await $fetch('/api/users/me', {
       method: 'PUT',
-      body: { name: displayName.value }
+      body: {
+        name: displayName.value,
+        title: professionalTitle.value
+      }
     })
 
     await refreshSession()
@@ -104,6 +121,9 @@ useSeoMeta({
 
       <div class="space-y-2">
         <p><strong>Имя:</strong> {{ user?.name || user?.username || 'Не указано' }}</p>
+        <p v-if="user?.title">
+          <strong>Профессия:</strong> {{ user.title }}
+        </p>
         <p><strong>Email:</strong> {{ user?.email || 'Не указано' }}</p>
         <p><strong>GitHub:</strong> @{{ user?.username }}</p>
       </div>
@@ -130,11 +150,24 @@ useSeoMeta({
           />
         </UFormField>
 
+        <UFormField
+          label="Профессия"
+          :error="titleValidationError"
+          hint="Ваша должность или специализация"
+        >
+          <UInput
+            v-model="professionalTitle"
+            placeholder="Например: Senior Vue Developer"
+            aria-label="Профессия"
+            @input="validateTitle(professionalTitle)"
+          />
+        </UFormField>
+
         <div class="flex justify-end">
           <UButton
             label="Сохранить"
             :loading="isSaving"
-            :disabled="!!validationError"
+            :disabled="!!validationError || !!titleValidationError"
             @click="handleSaveProfile"
           />
         </div>
