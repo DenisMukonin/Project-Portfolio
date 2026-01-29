@@ -95,6 +95,10 @@ async function handleAvatarChange(event: Event) {
       color: 'success'
     })
   } catch {
+    if (avatarPreview.value) {
+      URL.revokeObjectURL(avatarPreview.value)
+      avatarPreview.value = null
+    }
     avatarError.value = 'Не удалось загрузить аватар'
   } finally {
     isUploadingAvatar.value = false
