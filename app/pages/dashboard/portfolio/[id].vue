@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Portfolio } from '~~/server/db/schema/portfolios'
+import { getTemplateById, type TemplateDefinition } from '~~/shared/templates'
 
 const route = useRoute()
 const toast = useToast()
@@ -61,6 +62,12 @@ const isValid = computed(() => !titleError.value && !slugError.value)
 const isSaving = ref(false)
 const showDeleteDialog = ref(false)
 const isDeleting = ref(false)
+const showTemplateModal = ref(false)
+const isChangingTemplate = ref(false)
+
+const templateDisplayName = computed(() => {
+  return getTemplateById(portfolio.value?.template ?? 'minimal')?.name || portfolio.value?.template
+})
 
 async function handleSave() {
   if (!isValid.value) {
@@ -126,6 +133,42 @@ async function handleDelete() {
 
 function normalizeSlugInput() {
   form.slug = form.slug.toLowerCase().replace(/[^a-z0-9-]/g, '')
+}
+
+async function handleTemplateSelect(template: TemplateDefinition) {
+  if (template.id === portfolio.value?.template) {
+    showTemplateModal.value = false
+    return
+  }
+
+  isChangingTemplate.value = true
+  try {
+    await $fetch(`/api/portfolios/${portfolioId}`, {
+      method: 'PUT',
+      body: {
+        title: form.title,
+        template: template.id
+      }
+    })
+    toast.add({
+      title: 'Шаблон обновлен!',
+      description: `Применен шаблон "${template.name}".`,
+      color: 'success'
+    })
+    showTemplateModal.value = false
+    await refresh()
+  } catch (err: unknown) {
+    const message = err && typeof err === 'object' && 'data' in err
+      ? (err.data as { message?: string })?.message
+      : 'Не удалось изменить шаблон'
+    toast.add({
+      title: 'Ошибка',
+      description: message || 'Не удалось изменить шаблон',
+      color: 'error'
+    })
+  } finally {
+    isChangingTemplate.value = false
+  }
 }
 
 useSeoMeta({
@@ -249,7 +292,14 @@ useSeoMeta({
             </div>
             <div>
               <span class="text-gray-500 dark:text-gray-400">Шаблон:</span>
-              <span class="ml-2">{{ portfolio.template }}</span>
+              <span class="ml-2">{{ templateDisplayName }}</span>
+              <UButton
+                label="Изменить"
+                size="xs"
+                variant="link"
+                class="ml-2"
+                @click="showTemplateModal = true"
+              />
             </div>
             <div>
               <span class="text-gray-500 dark:text-gray-400">Статус:</span>
@@ -292,6 +342,22 @@ useSeoMeta({
         </UCard>
       </div>
     </div>
+
+    <UModal v-model:open="showTemplateModal">
+      <template #header>
+        <h3 class="text-lg font-semibold">
+          Выберите шаблон
+        </h3>
+      </template>
+
+      <div class="p-4">
+        <TemplateSelector
+          :current-template="portfolio?.template ?? 'minimal'"
+          :loading="isChangingTemplate"
+          @select="handleTemplateSelect"
+        />
+      </div>
+    </UModal>
 
     <UModal v-model:open="showDeleteDialog">
       <template #header>

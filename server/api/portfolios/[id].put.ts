@@ -1,6 +1,7 @@
 import { eq, and, ne } from 'drizzle-orm'
 import { db } from '~~/server/utils/db'
 import { portfolios } from '~~/server/db/schema'
+import { isAllowedTemplate } from '~~/shared/templates'
 
 // Regex: ^[a-z0-9]+(-[a-z0-9]+)*$ - matches: hello, hello-world, my-cool-site-2024
 const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/
@@ -53,6 +54,15 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  if (body.template !== undefined) {
+    if (!isAllowedTemplate(body.template)) {
+      throw createError({
+        statusCode: 400,
+        message: 'Invalid template. Allowed: minimal, tech, creative'
+      })
+    }
+  }
+
   const existingPortfolio = await db.query.portfolios.findFirst({
     where: and(
       eq(portfolios.id, portfolioId),
@@ -73,6 +83,10 @@ export default defineEventHandler(async (event) => {
 
   if (body.slug !== undefined) {
     updateData.slug = body.slug.trim().toLowerCase()
+  }
+
+  if (body.template !== undefined) {
+    updateData.template = body.template
   }
 
   const [updatedPortfolio] = await db
