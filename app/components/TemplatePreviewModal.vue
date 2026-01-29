@@ -46,6 +46,7 @@ function handleClose() {
           variant="ghost"
           color="neutral"
           size="sm"
+          aria-label="Закрыть предпросмотр"
           @click="handleClose"
         />
       </div>

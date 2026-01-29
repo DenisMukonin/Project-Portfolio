@@ -137,10 +137,14 @@ function normalizeSlugInput() {
   form.slug = form.slug.toLowerCase().replace(/[^a-z0-9-]/g, '')
 }
 
-async function handleTemplateSelect(template: TemplateDefinition) {
+// Shared function to apply template (DRY principle)
+async function applyTemplate(template: TemplateDefinition, options: { closePreview?: boolean } = {}) {
   // Skip API call if selecting same template
   if (template.id === portfolio.value?.template) {
     showTemplateModal.value = false
+    if (options.closePreview) {
+      showPreview.value = false
+    }
     return
   }
 
@@ -159,6 +163,9 @@ async function handleTemplateSelect(template: TemplateDefinition) {
       color: 'success'
     })
     showTemplateModal.value = false
+    if (options.closePreview) {
+      showPreview.value = false
+    }
     await refresh()
   } catch (err: unknown) {
     const message = err && typeof err === 'object' && 'data' in err
@@ -172,6 +179,10 @@ async function handleTemplateSelect(template: TemplateDefinition) {
   } finally {
     isChangingTemplate.value = false
   }
+}
+
+async function handleTemplateSelect(template: TemplateDefinition) {
+  await applyTemplate(template)
 }
 
 function handleTemplatePreview(template: TemplateDefinition) {
@@ -180,36 +191,7 @@ function handleTemplatePreview(template: TemplateDefinition) {
 }
 
 async function handlePreviewSelect(template: TemplateDefinition) {
-  // Apply template from preview modal
-  isChangingTemplate.value = true
-  try {
-    await $fetch(`/api/portfolios/${portfolioId}`, {
-      method: 'PUT',
-      body: {
-        title: form.title,
-        template: template.id
-      }
-    })
-    toast.add({
-      title: 'Шаблон обновлен!',
-      description: `Применен шаблон "${template.name}".`,
-      color: 'success'
-    })
-    showPreview.value = false
-    showTemplateModal.value = false
-    await refresh()
-  } catch (err: unknown) {
-    const message = err && typeof err === 'object' && 'data' in err
-      ? (err.data as { message?: string })?.message
-      : 'Не удалось изменить шаблон'
-    toast.add({
-      title: 'Ошибка',
-      description: message || 'Не удалось изменить шаблон',
-      color: 'error'
-    })
-  } finally {
-    isChangingTemplate.value = false
-  }
+  await applyTemplate(template, { closePreview: true })
 }
 
 useSeoMeta({

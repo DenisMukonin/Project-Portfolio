@@ -44,10 +44,10 @@ function handleImageError(event: Event) {
             loading="lazy"
             @error="handleImageError"
           >
-          <!-- Preview overlay button -->
+          <!-- Preview overlay button - visible on mobile, hover on desktop -->
           <button
             type="button"
-            class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity rounded"
+            class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity rounded"
             @click.stop="emit('preview', template)"
           >
             <UButton
