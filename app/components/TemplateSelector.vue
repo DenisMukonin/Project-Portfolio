@@ -24,6 +24,7 @@ function handleImageError(event: Event) {
       type="button"
       class="text-left rounded-lg border-2 p-3 transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary-500"
       :class="[
+        loading && 'opacity-50 cursor-wait',
         currentTemplate === template.id
           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
           : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'
