@@ -1,9 +1,53 @@
 <script setup lang="ts">
-const { user, clear } = useUserSession()
+const { user, clear, fetch: refreshSession } = useUserSession()
 const toast = useToast()
+
+const displayName = ref(user.value?.name || '')
+const isSaving = ref(false)
+const validationError = ref('')
 
 const isDeleteModalOpen = ref(false)
 const isDeleting = ref(false)
+
+const MAX_NAME_LENGTH = 100
+
+function validateName(name: string): boolean {
+  if (name.length > MAX_NAME_LENGTH) {
+    validationError.value = 'Имя не может быть длиннее 100 символов'
+    return false
+  }
+  validationError.value = ''
+  return true
+}
+
+async function handleSaveProfile() {
+  if (!validateName(displayName.value)) {
+    return
+  }
+
+  isSaving.value = true
+  try {
+    await $fetch('/api/users/me', {
+      method: 'PUT',
+      body: { name: displayName.value }
+    })
+
+    await refreshSession()
+
+    toast.add({
+      title: 'Профиль обновлён',
+      color: 'success'
+    })
+  } catch {
+    toast.add({
+      title: 'Ошибка',
+      description: 'Не удалось сохранить изменения',
+      color: 'error'
+    })
+  } finally {
+    isSaving.value = false
+  }
+}
 
 async function handleDeleteAccount() {
   isDeleting.value = true
@@ -65,7 +109,38 @@ useSeoMeta({
       </div>
     </UCard>
 
-    <!-- Danger Zone -->
+    <UCard class="mb-8">
+      <template #header>
+        <h2 class="text-lg font-semibold">
+          Редактирование профиля
+        </h2>
+      </template>
+
+      <div class="space-y-4">
+        <UFormField
+          label="Отображаемое имя"
+          :error="validationError"
+          hint="Это имя будет показано на вашем портфолио"
+        >
+          <UInput
+            v-model="displayName"
+            :placeholder="user?.username || 'Ваше имя'"
+            aria-label="Отображаемое имя"
+            @input="validateName(displayName)"
+          />
+        </UFormField>
+
+        <div class="flex justify-end">
+          <UButton
+            label="Сохранить"
+            :loading="isSaving"
+            :disabled="!!validationError"
+            @click="handleSaveProfile"
+          />
+        </div>
+      </div>
+    </UCard>
+
     <UCard class="border-red-200 dark:border-red-800">
       <template #header>
         <div class="flex items-center gap-2 text-red-600 dark:text-red-400">
