@@ -66,6 +66,19 @@ const showTemplateModal = ref(false)
 const isChangingTemplate = ref(false)
 const showPreview = ref(false)
 const previewTemplate = ref<TemplateDefinition | null>(null)
+const showPortfolioPreview = ref(false)
+
+// Preview data - use current form data (not saved data) for live preview
+const portfolioPreviewData = computed(() => ({
+  title: form.title || portfolio.value?.title,
+  subtitle: form.subtitle || portfolio.value?.subtitle || undefined,
+  description: form.description || portfolio.value?.description || undefined
+}))
+
+// Get current template definition for portfolio preview
+const currentTemplateDefinition = computed(() => {
+  return getTemplateById(portfolio.value?.template ?? 'minimal') ?? null
+})
 
 const templateDisplayName = computed(() => {
   return getTemplateById(portfolio.value?.template ?? 'minimal')?.name || portfolio.value?.template
@@ -203,17 +216,25 @@ useSeoMeta({
 
 <template>
   <div class="container mx-auto px-4 py-8">
-    <div class="flex items-center gap-2 mb-6">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-2">
+        <UButton
+          to="/dashboard"
+          icon="i-lucide-arrow-left"
+          variant="ghost"
+          color="neutral"
+          aria-label="Назад к панели управления"
+        />
+        <h1 class="text-2xl font-bold">
+          {{ portfolio?.title || 'Редактирование портфолио' }}
+        </h1>
+      </div>
       <UButton
-        to="/dashboard"
-        icon="i-lucide-arrow-left"
-        variant="ghost"
-        color="neutral"
-        aria-label="Назад к панели управления"
+        label="Предпросмотр"
+        icon="i-lucide-eye"
+        variant="outline"
+        @click="showPortfolioPreview = true"
       />
-      <h1 class="text-2xl font-bold">
-        {{ portfolio?.title || 'Редактирование портфолио' }}
-      </h1>
     </div>
 
     <div
@@ -437,6 +458,14 @@ useSeoMeta({
       :loading="isChangingTemplate"
       @select="handlePreviewSelect"
       @close="showPreview = false"
+    />
+
+    <!-- Portfolio Preview Modal (Story 2.9) -->
+    <PortfolioPreviewModal
+      v-model:open="showPortfolioPreview"
+      :template="currentTemplateDefinition"
+      :portfolio-data="portfolioPreviewData"
+      @close="showPortfolioPreview = false"
     />
   </div>
 </template>
