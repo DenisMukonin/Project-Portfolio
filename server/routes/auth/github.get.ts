@@ -50,7 +50,8 @@ export default defineOAuthGitHubEventHandler({
         username: dbUser.username,
         avatarUrl: dbUser.avatarUrl,
         title: dbUser.title,
-        bio: dbUser.bio
+        bio: dbUser.bio,
+        socialLinks: dbUser.socialLinks as import('~~/shared/types/social-links').SocialLinks | null
       },
       loggedInAt: Date.now()
     })

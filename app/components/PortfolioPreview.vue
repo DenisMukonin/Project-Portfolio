@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TemplateDefinition } from '~~/shared/templates'
+import type { SocialLinks } from '~~/shared/types/social-links'
 
 const props = defineProps<{
   template: TemplateDefinition
@@ -10,6 +11,7 @@ const props = defineProps<{
   }
   userTitle?: string | null
   userBio?: string | null
+  userSocialLinks?: SocialLinks | null
 }>()
 
 // Number of placeholder items to show in future sections (Projects, Experience)
@@ -89,6 +91,13 @@ const avatarIconStyles = computed(() => {
       return 'text-gray-400'
   }
 })
+
+const hasSocialLinks = computed(() =>
+  props.userSocialLinks?.github
+  || props.userSocialLinks?.linkedin
+  || props.userSocialLinks?.twitter
+  || props.userSocialLinks?.website
+)
 </script>
 
 <template>
@@ -134,20 +143,83 @@ const avatarIconStyles = computed(() => {
         {{ displayDescription }}
       </p>
 
-      <!-- Social Links Placeholder -->
+      <!-- Social Links -->
       <div class="flex gap-4 mt-8">
-        <div
-          v-for="icon in ['i-lucide-github', 'i-lucide-linkedin', 'i-lucide-twitter', 'i-lucide-globe']"
-          :key="icon"
-          class="w-10 h-10 rounded-full flex items-center justify-center opacity-50"
+        <a
+          v-if="userSocialLinks?.github"
+          :href="userSocialLinks.github"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
           :class="avatarStyles"
+          aria-label="GitHub"
         >
           <UIcon
-            :name="icon"
+            name="i-simple-icons-github"
             class="w-5 h-5"
             :class="avatarIconStyles"
           />
-        </div>
+        </a>
+        <a
+          v-if="userSocialLinks?.linkedin"
+          :href="userSocialLinks.linkedin"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+          :class="avatarStyles"
+          aria-label="LinkedIn"
+        >
+          <UIcon
+            name="i-simple-icons-linkedin"
+            class="w-5 h-5"
+            :class="avatarIconStyles"
+          />
+        </a>
+        <a
+          v-if="userSocialLinks?.twitter"
+          :href="userSocialLinks.twitter"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+          :class="avatarStyles"
+          aria-label="Twitter"
+        >
+          <UIcon
+            name="i-simple-icons-x"
+            class="w-5 h-5"
+            :class="avatarIconStyles"
+          />
+        </a>
+        <a
+          v-if="userSocialLinks?.website"
+          :href="userSocialLinks.website"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+          :class="avatarStyles"
+          aria-label="Website"
+        >
+          <UIcon
+            name="i-lucide-globe"
+            class="w-5 h-5"
+            :class="avatarIconStyles"
+          />
+        </a>
+
+        <template v-if="!hasSocialLinks">
+          <div
+            v-for="icon in ['i-simple-icons-github', 'i-simple-icons-linkedin', 'i-simple-icons-x', 'i-lucide-globe']"
+            :key="icon"
+            class="w-10 h-10 rounded-full flex items-center justify-center opacity-30"
+            :class="avatarStyles"
+          >
+            <UIcon
+              :name="icon"
+              class="w-5 h-5"
+              :class="avatarIconStyles"
+            />
+          </div>
+        </template>
       </div>
     </div>
 

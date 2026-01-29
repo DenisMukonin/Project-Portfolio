@@ -469,6 +469,7 @@ useSeoMeta({
       :portfolio-data="portfolioPreviewData"
       :user-title="user?.title"
       :user-bio="user?.bio"
+      :user-social-links="user?.socialLinks"
       @close="showPortfolioPreview = false"
     />
   </div>

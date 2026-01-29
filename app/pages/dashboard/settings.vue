@@ -1,14 +1,28 @@
 <script setup lang="ts">
+import type { SocialLinks } from '~~/shared/types/social-links'
+
 const { user, clear, fetch: refreshSession } = useUserSession()
 const toast = useToast()
 
 const displayName = ref(user.value?.name || '')
 const professionalTitle = ref(user.value?.title || '')
 const bio = ref(user.value?.bio || '')
+const socialLinks = reactive<SocialLinks>({
+  github: user.value?.socialLinks?.github || '',
+  linkedin: user.value?.socialLinks?.linkedin || '',
+  twitter: user.value?.socialLinks?.twitter || '',
+  website: user.value?.socialLinks?.website || ''
+})
 const isSaving = ref(false)
 const validationError = ref('')
 const titleValidationError = ref('')
 const bioValidationError = ref('')
+const socialLinksErrors = reactive({
+  github: '',
+  linkedin: '',
+  twitter: '',
+  website: ''
+})
 
 const isDeleteModalOpen = ref(false)
 const isDeleting = ref(false)
@@ -16,8 +30,13 @@ const isDeleting = ref(false)
 const MAX_NAME_LENGTH = 100
 const MAX_TITLE_LENGTH = 100
 const MAX_BIO_LENGTH = 1000
+const MAX_URL_LENGTH = 200
 
 const bioCharacterCount = computed(() => bio.value.length)
+
+const hasSocialLinksErrors = computed(() =>
+  Object.values(socialLinksErrors).some(error => !!error)
+)
 
 function validateName(name: string): boolean {
   if (name.length > MAX_NAME_LENGTH) {
@@ -46,19 +65,49 @@ function validateBio(text: string): boolean {
   return true
 }
 
-// Validate initial values on mount (handles edge case of pre-existing invalid data)
+function validateSocialUrl(field: keyof typeof socialLinksErrors, url: string): boolean {
+  if (!url) {
+    socialLinksErrors[field] = ''
+    return true
+  }
+  if (url.length > MAX_URL_LENGTH) {
+    socialLinksErrors[field] = `URL не может быть длиннее ${MAX_URL_LENGTH} символов`
+    return false
+  }
+  try {
+    const parsed = new URL(url)
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      socialLinksErrors[field] = 'URL должен начинаться с http:// или https://'
+      return false
+    }
+    socialLinksErrors[field] = ''
+    return true
+  } catch {
+    socialLinksErrors[field] = 'Неверный формат URL'
+    return false
+  }
+}
+
 onMounted(() => {
   validateName(displayName.value)
   validateTitle(professionalTitle.value)
   validateBio(bio.value)
+  validateSocialUrl('github', socialLinks.github || '')
+  validateSocialUrl('linkedin', socialLinks.linkedin || '')
+  validateSocialUrl('twitter', socialLinks.twitter || '')
+  validateSocialUrl('website', socialLinks.website || '')
 })
 
 async function handleSaveProfile() {
   const nameValid = validateName(displayName.value)
   const titleValid = validateTitle(professionalTitle.value)
   const bioValid = validateBio(bio.value)
+  const socialValid = validateSocialUrl('github', socialLinks.github || '')
+    && validateSocialUrl('linkedin', socialLinks.linkedin || '')
+    && validateSocialUrl('twitter', socialLinks.twitter || '')
+    && validateSocialUrl('website', socialLinks.website || '')
 
-  if (!nameValid || !titleValid || !bioValid) {
+  if (!nameValid || !titleValid || !bioValid || !socialValid) {
     return
   }
 
@@ -69,7 +118,13 @@ async function handleSaveProfile() {
       body: {
         name: displayName.value.trim(),
         title: professionalTitle.value.trim(),
-        bio: bio.value.trim()
+        bio: bio.value.trim(),
+        socialLinks: {
+          github: socialLinks.github?.trim() || undefined,
+          linkedin: socialLinks.linkedin?.trim() || undefined,
+          twitter: socialLinks.twitter?.trim() || undefined,
+          website: socialLinks.website?.trim() || undefined
+        }
       }
     })
 
@@ -153,6 +208,10 @@ useSeoMeta({
         </p>
         <p><strong>Email:</strong> {{ user?.email || 'Не указано' }}</p>
         <p><strong>GitHub:</strong> @{{ user?.username }}</p>
+        <p v-if="user?.socialLinks && Object.values(user.socialLinks).some(v => v)">
+          <strong>Соц. сети:</strong>
+          {{ [user.socialLinks.github && 'GitHub', user.socialLinks.linkedin && 'LinkedIn', user.socialLinks.twitter && 'Twitter', user.socialLinks.website && 'Сайт'].filter(Boolean).join(', ') }}
+        </p>
       </div>
     </UCard>
 
@@ -203,17 +262,79 @@ useSeoMeta({
             @input="validateBio(bio)"
           />
         </UFormField>
-
-        <div class="flex justify-end">
-          <UButton
-            label="Сохранить"
-            :loading="isSaving"
-            :disabled="!!validationError || !!titleValidationError || !!bioValidationError"
-            @click="handleSaveProfile"
-          />
-        </div>
       </div>
     </UCard>
+
+    <UCard class="mb-8">
+      <template #header>
+        <h2 class="text-lg font-semibold">
+          Социальные сети
+        </h2>
+      </template>
+
+      <div class="space-y-4">
+        <UFormField
+          label="GitHub"
+          :error="socialLinksErrors.github"
+        >
+          <UInput
+            v-model="socialLinks.github"
+            placeholder="https://github.com/username"
+            icon="i-simple-icons-github"
+            aria-label="GitHub URL"
+            @input="validateSocialUrl('github', socialLinks.github || '')"
+          />
+        </UFormField>
+
+        <UFormField
+          label="LinkedIn"
+          :error="socialLinksErrors.linkedin"
+        >
+          <UInput
+            v-model="socialLinks.linkedin"
+            placeholder="https://linkedin.com/in/username"
+            icon="i-simple-icons-linkedin"
+            aria-label="LinkedIn URL"
+            @input="validateSocialUrl('linkedin', socialLinks.linkedin || '')"
+          />
+        </UFormField>
+
+        <UFormField
+          label="Twitter / X"
+          :error="socialLinksErrors.twitter"
+        >
+          <UInput
+            v-model="socialLinks.twitter"
+            placeholder="https://twitter.com/username"
+            icon="i-simple-icons-x"
+            aria-label="Twitter URL"
+            @input="validateSocialUrl('twitter', socialLinks.twitter || '')"
+          />
+        </UFormField>
+
+        <UFormField
+          label="Личный сайт"
+          :error="socialLinksErrors.website"
+        >
+          <UInput
+            v-model="socialLinks.website"
+            placeholder="https://yoursite.com"
+            icon="i-lucide-globe"
+            aria-label="Personal website URL"
+            @input="validateSocialUrl('website', socialLinks.website || '')"
+          />
+        </UFormField>
+      </div>
+    </UCard>
+
+    <div class="flex justify-end mb-8">
+      <UButton
+        label="Сохранить профиль"
+        :loading="isSaving"
+        :disabled="!!validationError || !!titleValidationError || !!bioValidationError || hasSocialLinksErrors"
+        @click="handleSaveProfile"
+      />
+    </div>
 
     <UCard class="border-red-200 dark:border-red-800">
       <template #header>

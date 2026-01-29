@@ -1,3 +1,5 @@
+import type { SocialLinks } from './social-links'
+
 declare module '#auth-utils' {
   interface User {
     id: string
@@ -8,6 +10,7 @@ declare module '#auth-utils' {
     avatarUrl: string | null
     title: string | null
     bio: string | null
+    socialLinks: SocialLinks | null
   }
 
   interface UserSession {

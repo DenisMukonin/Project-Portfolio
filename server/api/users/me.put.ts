@@ -1,9 +1,21 @@
 import { eq } from 'drizzle-orm'
 import { db } from '~~/server/utils/db'
 import { users } from '~~/server/db/schema'
+import type { SocialLinks } from '~~/shared/types/social-links'
 
 const MAX_FIELD_LENGTH = 100
 const MAX_BIO_LENGTH = 1000
+const MAX_URL_LENGTH = 200
+
+function isValidUrl(url: string): boolean {
+  if (!url) return true // Empty is valid (means "remove link")
+  try {
+    const parsed = new URL(url)
+    return ['http:', 'https:'].includes(parsed.protocol)
+  } catch {
+    return false
+  }
+}
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -11,7 +23,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   // Build update object - only include fields that were explicitly sent
-  const updateData: { name?: string | null, title?: string | null, bio?: string | null, updatedAt: Date } = {
+  const updateData: { name?: string | null, title?: string | null, bio?: string | null, socialLinks?: SocialLinks | null, updatedAt: Date } = {
     updatedAt: new Date()
   }
 
@@ -58,6 +70,41 @@ export default defineEventHandler(async (event) => {
     }
 
     updateData.bio = bioValue || null
+  }
+
+  // Validate and add socialLinks if provided
+  if (body.socialLinks !== undefined) {
+    const links = body.socialLinks
+
+    if (links !== null && typeof links !== 'object') {
+      throw createError({ statusCode: 400, message: 'Social links must be an object' })
+    }
+
+    const validKeys = ['github', 'linkedin', 'twitter', 'website'] as const
+    const sanitized: SocialLinks = {}
+
+    if (links) {
+      for (const key of validKeys) {
+        const value = links[key]
+        if (value !== undefined) {
+          if (typeof value !== 'string') {
+            throw createError({ statusCode: 400, message: `${key} must be a string` })
+          }
+          const trimmed = value.trim()
+          if (trimmed && !isValidUrl(trimmed)) {
+            throw createError({ statusCode: 400, message: `Invalid URL for ${key}` })
+          }
+          if (trimmed.length > MAX_URL_LENGTH) {
+            throw createError({ statusCode: 400, message: `URL for ${key} is too long` })
+          }
+          if (trimmed) {
+            sanitized[key] = trimmed
+          }
+        }
+      }
+    }
+
+    updateData.socialLinks = Object.keys(sanitized).length > 0 ? sanitized : null
   }
 
   try {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TemplateDefinition } from '~~/shared/templates'
+import type { SocialLinks } from '~~/shared/types/social-links'
 
 const props = defineProps<{
   open: boolean
@@ -11,6 +12,7 @@ const props = defineProps<{
   }
   userTitle?: string | null
   userBio?: string | null
+  userSocialLinks?: SocialLinks | null
 }>()
 
 const emit = defineEmits<{
@@ -99,6 +101,7 @@ watch(() => props.open, (isOpen) => {
           :portfolio-data="portfolioData"
           :user-title="userTitle"
           :user-bio="userBio"
+          :user-social-links="userSocialLinks"
         />
         <!-- Loading skeleton when template is not yet available -->
         <div
