@@ -84,7 +84,11 @@ watch(() => props.open, (isOpen) => {
       </div>
     </template>
 
-    <div class="p-6 flex flex-col items-center overflow-auto bg-gray-100 dark:bg-gray-950 min-h-full">
+    <div
+      id="portfolio-preview-content"
+      class="p-6 flex flex-col items-center overflow-auto bg-gray-100 dark:bg-gray-950 min-h-full"
+      aria-describedby="preview-description"
+    >
       <!-- Preview container with dynamic width -->
       <div :class="containerClass">
         <PortfolioPreview
@@ -92,9 +96,22 @@ watch(() => props.open, (isOpen) => {
           :template="template"
           :portfolio-data="portfolioData"
         />
+        <!-- Loading skeleton when template is not yet available -->
+        <div
+          v-else
+          class="w-full min-h-[400px] rounded-lg bg-gray-200 dark:bg-gray-800 animate-pulse flex items-center justify-center"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-gray-400"
+          />
+        </div>
       </div>
 
-      <p class="mt-6 text-sm text-gray-500 dark:text-gray-400 text-center">
+      <p
+        id="preview-description"
+        class="mt-6 text-sm text-gray-500 dark:text-gray-400 text-center"
+      >
         Это предварительный просмотр. Так ваше портфолио будет выглядеть для посетителей.
       </p>
 

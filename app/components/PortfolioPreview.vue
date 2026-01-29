@@ -10,6 +10,10 @@ const props = defineProps<{
   }
 }>()
 
+// Number of placeholder items to show in future sections (Projects, Experience)
+// Kept small (2) to indicate content will appear without cluttering the preview
+const PLACEHOLDER_ITEMS_COUNT = 2
+
 // Fallback data when portfolio fields are empty
 const displayTitle = computed(() => props.portfolioData.title || 'Ваше имя')
 const displaySubtitle = computed(() => props.portfolioData.subtitle || 'Ваша профессия')
@@ -18,9 +22,12 @@ const displayDescription = computed(() =>
 )
 
 // Template-specific styles - extended for full portfolio view
+// NOTE: 'tech' and 'creative' templates intentionally ignore system dark mode preference
+// by design - these templates have their own distinct visual identity that shouldn't change
 const templateStyles = computed(() => {
   switch (props.template.id) {
     case 'minimal':
+      // Minimal follows system dark/light mode preference
       return {
         bg: 'bg-white dark:bg-gray-900',
         text: 'text-gray-900 dark:text-white',
@@ -29,6 +36,7 @@ const templateStyles = computed(() => {
         border: 'border-gray-200 dark:border-gray-700'
       }
     case 'tech':
+      // Tech template: Always dark terminal aesthetic (by design)
       return {
         bg: 'bg-gray-900',
         text: 'text-green-400',
@@ -37,6 +45,7 @@ const templateStyles = computed(() => {
         border: 'border-green-500/30'
       }
     case 'creative':
+      // Creative template: Always vibrant gradient (by design)
       return {
         bg: 'bg-gradient-to-br from-purple-600 to-pink-500',
         text: 'text-white',
@@ -153,7 +162,7 @@ const avatarIconStyles = computed(() => {
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
-          v-for="n in 2"
+          v-for="n in PLACEHOLDER_ITEMS_COUNT"
           :key="n"
           class="p-4 rounded-lg border opacity-50"
           :class="templateStyles.border"
@@ -176,7 +185,7 @@ const avatarIconStyles = computed(() => {
         class="text-sm mt-4 opacity-60"
         :class="templateStyles.accent"
       >
-        Проекты будут добавлены позже (Epic 4)
+        Проекты будут добавлены позже
       </p>
     </div>
 
@@ -193,7 +202,7 @@ const avatarIconStyles = computed(() => {
       </h2>
       <div class="space-y-4 opacity-50">
         <div
-          v-for="n in 2"
+          v-for="n in PLACEHOLDER_ITEMS_COUNT"
           :key="n"
           class="flex gap-4"
         >
@@ -217,7 +226,7 @@ const avatarIconStyles = computed(() => {
         class="text-sm mt-4 opacity-60"
         :class="templateStyles.accent"
       >
-        Опыт работы будет добавлен позже (Epic 5)
+        Опыт работы будет добавлен позже
       </p>
     </div>
 
@@ -254,7 +263,7 @@ const avatarIconStyles = computed(() => {
         class="text-sm mt-4 opacity-60"
         :class="templateStyles.accent"
       >
-        Образование будет добавлено позже (Epic 5)
+        Образование будет добавлено позже
       </p>
     </div>
 

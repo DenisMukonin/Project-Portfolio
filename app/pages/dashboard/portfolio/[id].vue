@@ -69,10 +69,11 @@ const previewTemplate = ref<TemplateDefinition | null>(null)
 const showPortfolioPreview = ref(false)
 
 // Preview data - use current form data (not saved data) for live preview
+// Note: Using explicit undefined checks to allow empty strings (user clearing a field)
 const portfolioPreviewData = computed(() => ({
-  title: form.title || portfolio.value?.title,
-  subtitle: form.subtitle || portfolio.value?.subtitle || undefined,
-  description: form.description || portfolio.value?.description || undefined
+  title: form.title !== '' ? form.title : portfolio.value?.title,
+  subtitle: form.subtitle !== '' ? form.subtitle : (portfolio.value?.subtitle ?? undefined),
+  description: form.description !== '' ? form.description : (portfolio.value?.description ?? undefined)
 }))
 
 // Get current template definition for portfolio preview
