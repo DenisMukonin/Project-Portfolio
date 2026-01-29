@@ -3,6 +3,7 @@ import { db } from '~~/server/utils/db'
 import { users } from '~~/server/db/schema'
 
 const MAX_FIELD_LENGTH = 100
+const MAX_BIO_LENGTH = 1000
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -10,7 +11,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   // Build update object - only include fields that were explicitly sent
-  const updateData: { name?: string | null, title?: string | null, updatedAt: Date } = {
+  const updateData: { name?: string | null, title?: string | null, bio?: string | null, updatedAt: Date } = {
     updatedAt: new Date()
   }
 
@@ -42,6 +43,21 @@ export default defineEventHandler(async (event) => {
     }
 
     updateData.title = titleValue || null
+  }
+
+  // Validate and add bio if provided
+  if (body.bio !== undefined) {
+    if (body.bio !== null && typeof body.bio !== 'string') {
+      throw createError({ statusCode: 400, message: 'Bio must be a string' })
+    }
+
+    const bioValue = typeof body.bio === 'string' ? body.bio.trim() : null
+
+    if (bioValue && bioValue.length > MAX_BIO_LENGTH) {
+      throw createError({ statusCode: 400, message: `Bio must be ${MAX_BIO_LENGTH} characters or less` })
+    }
+
+    updateData.bio = bioValue || null
   }
 
   try {

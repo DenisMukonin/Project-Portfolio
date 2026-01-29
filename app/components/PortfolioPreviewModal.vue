@@ -10,6 +10,7 @@ const props = defineProps<{
     description?: string
   }
   userTitle?: string | null
+  userBio?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -97,6 +98,7 @@ watch(() => props.open, (isOpen) => {
           :template="template"
           :portfolio-data="portfolioData"
           :user-title="userTitle"
+          :user-bio="userBio"
         />
         <!-- Loading skeleton when template is not yet available -->
         <div

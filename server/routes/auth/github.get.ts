@@ -49,7 +49,8 @@ export default defineOAuthGitHubEventHandler({
         name: dbUser.name,
         username: dbUser.username,
         avatarUrl: dbUser.avatarUrl,
-        title: dbUser.title
+        title: dbUser.title,
+        bio: dbUser.bio
       },
       loggedInAt: Date.now()
     })

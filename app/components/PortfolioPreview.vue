@@ -9,6 +9,7 @@ const props = defineProps<{
     description?: string
   }
   userTitle?: string | null
+  userBio?: string | null
 }>()
 
 // Number of placeholder items to show in future sections (Projects, Experience)
@@ -19,7 +20,7 @@ const PLACEHOLDER_ITEMS_COUNT = 2
 const displayTitle = computed(() => props.portfolioData.title || 'Ваше имя')
 const displaySubtitle = computed(() => props.userTitle || props.portfolioData.subtitle || 'Ваша профессия')
 const displayDescription = computed(() =>
-  props.portfolioData.description || 'Здесь будет ваше описание. Расскажите о себе и своих навыках.'
+  props.userBio || props.portfolioData.description || 'Здесь будет ваше описание. Расскажите о себе и своих навыках.'
 )
 
 // Template-specific styles - extended for full portfolio view
@@ -127,7 +128,7 @@ const avatarIconStyles = computed(() => {
 
       <!-- Description / Bio -->
       <p
-        class="max-w-2xl text-base md:text-lg leading-relaxed"
+        class="max-w-2xl text-base md:text-lg leading-relaxed whitespace-pre-line"
         :class="templateStyles.accent"
       >
         {{ displayDescription }}

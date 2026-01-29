@@ -4,14 +4,20 @@ const toast = useToast()
 
 const displayName = ref(user.value?.name || '')
 const professionalTitle = ref(user.value?.title || '')
+const bio = ref(user.value?.bio || '')
 const isSaving = ref(false)
 const validationError = ref('')
 const titleValidationError = ref('')
+const bioValidationError = ref('')
 
 const isDeleteModalOpen = ref(false)
 const isDeleting = ref(false)
 
 const MAX_NAME_LENGTH = 100
+const MAX_TITLE_LENGTH = 100
+const MAX_BIO_LENGTH = 1000
+
+const bioCharacterCount = computed(() => bio.value.length)
 
 function validateName(name: string): boolean {
   if (name.length > MAX_NAME_LENGTH) {
@@ -23,29 +29,47 @@ function validateName(name: string): boolean {
 }
 
 function validateTitle(title: string): boolean {
-  if (title.length > MAX_NAME_LENGTH) {
-    titleValidationError.value = 'Профессия не может быть длиннее 100 символов'
+  if (title.length > MAX_TITLE_LENGTH) {
+    titleValidationError.value = `Профессия не может быть длиннее ${MAX_TITLE_LENGTH} символов`
     return false
   }
   titleValidationError.value = ''
   return true
 }
 
+function validateBio(text: string): boolean {
+  if (text.length > MAX_BIO_LENGTH) {
+    bioValidationError.value = `Био не может быть длиннее ${MAX_BIO_LENGTH} символов`
+    return false
+  }
+  bioValidationError.value = ''
+  return true
+}
+
+// Validate initial values on mount (handles edge case of pre-existing invalid data)
+onMounted(() => {
+  validateName(displayName.value)
+  validateTitle(professionalTitle.value)
+  validateBio(bio.value)
+})
+
 async function handleSaveProfile() {
   const nameValid = validateName(displayName.value)
   const titleValid = validateTitle(professionalTitle.value)
+  const bioValid = validateBio(bio.value)
 
-  if (!nameValid || !titleValid) {
+  if (!nameValid || !titleValid || !bioValid) {
     return
   }
 
   isSaving.value = true
   try {
-    await $fetch('/api/users/me', {
+    await $fetch<{ id: string }>('/api/users/me', {
       method: 'PUT',
       body: {
-        name: displayName.value,
-        title: professionalTitle.value
+        name: displayName.value.trim(),
+        title: professionalTitle.value.trim(),
+        bio: bio.value.trim()
       }
     })
 
@@ -124,6 +148,9 @@ useSeoMeta({
         <p v-if="user?.title">
           <strong>Профессия:</strong> {{ user.title }}
         </p>
+        <p v-if="user?.bio">
+          <strong>О себе:</strong> {{ user.bio.length > 100 ? user.bio.slice(0, 100) + '...' : user.bio }}
+        </p>
         <p><strong>Email:</strong> {{ user?.email || 'Не указано' }}</p>
         <p><strong>GitHub:</strong> @{{ user?.username }}</p>
       </div>
@@ -163,11 +190,25 @@ useSeoMeta({
           />
         </UFormField>
 
+        <UFormField
+          label="О себе"
+          :error="bioValidationError"
+          :hint="`${bioCharacterCount} / ${MAX_BIO_LENGTH}`"
+        >
+          <UTextarea
+            v-model="bio"
+            placeholder="Расскажите о себе, своём опыте и навыках..."
+            :rows="4"
+            aria-label="О себе"
+            @input="validateBio(bio)"
+          />
+        </UFormField>
+
         <div class="flex justify-end">
           <UButton
             label="Сохранить"
             :loading="isSaving"
-            :disabled="!!validationError || !!titleValidationError"
+            :disabled="!!validationError || !!titleValidationError || !!bioValidationError"
             @click="handleSaveProfile"
           />
         </div>

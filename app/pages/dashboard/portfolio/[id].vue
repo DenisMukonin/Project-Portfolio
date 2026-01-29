@@ -468,6 +468,7 @@ useSeoMeta({
       :template="currentTemplateDefinition"
       :portfolio-data="portfolioPreviewData"
       :user-title="user?.title"
+      :user-bio="user?.bio"
       @close="showPortfolioPreview = false"
     />
   </div>
