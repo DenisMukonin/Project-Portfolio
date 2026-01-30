@@ -4,7 +4,7 @@ import { users } from '../../db/schema'
 
 export default defineOAuthGitHubEventHandler({
   config: {
-    scope: ['user:email', 'read:user']
+    scope: ['user:email', 'read:user', 'public_repo']
   },
   async onSuccess(event, { user: githubUser, tokens }) {
     const existingUser = await db.select()

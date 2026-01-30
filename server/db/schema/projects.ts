@@ -5,7 +5,7 @@ import { portfolios } from './portfolios'
 export const projects = pgTable('projects', {
   id: uuid('id').primaryKey().defaultRandom(),
   portfolioId: uuid('portfolio_id').notNull().references(() => portfolios.id, { onDelete: 'cascade' }),
-  githubRepoId: text('github_repo_id'), // null for manually added projects
+  githubRepoId: text('github_repo_id').unique(), // null for manually added projects, indexed for fast sync lookups
   name: text('name').notNull(),
   description: text('description'),
   url: text('url'),

@@ -17,6 +17,7 @@
     "@iconify-json/lucide": "^1.2.86",
     "@iconify-json/simple-icons": "^1.2.67",
     "@nuxt/ui": "^4.4.0",
+    "@octokit/rest": "^22.0.1",
     "drizzle-orm": "^0.45.1",
     "nuxt": "^4.2.2",
     "nuxt-auth-utils": "^0.5.28",

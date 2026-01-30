@@ -1,4 +1,8 @@
 <script setup lang="ts">
+defineProps<{
+  isSyncing?: boolean
+}>()
+
 const emit = defineEmits<{
   sync: []
   addManual: []
@@ -26,6 +30,8 @@ const emit = defineEmits<{
       <UButton
         label="Синхронизировать с GitHub"
         icon="i-simple-icons-github"
+        :loading="isSyncing"
+        :disabled="isSyncing"
         @click="emit('sync')"
       />
       <UButton
@@ -33,6 +39,7 @@ const emit = defineEmits<{
         icon="i-lucide-plus"
         variant="outline"
         color="neutral"
+        :disabled="isSyncing"
         @click="emit('addManual')"
       />
     </div>

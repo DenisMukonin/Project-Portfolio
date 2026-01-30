@@ -2,6 +2,41 @@
 import type { Portfolio } from '~~/server/db/schema/portfolios'
 import type { Project } from '~~/server/db/schema/projects'
 
+interface SyncResponse {
+  success: boolean
+  imported: number
+  updated: number
+  total: number
+}
+
+// GitHub language colors - most popular languages
+const languageColors: Record<string, string> = {
+  'TypeScript': '#3178c6',
+  'JavaScript': '#f1e05a',
+  'Python': '#3572A5',
+  'Java': '#b07219',
+  'Go': '#00ADD8',
+  'Rust': '#dea584',
+  'C++': '#f34b7d',
+  'C': '#555555',
+  'C#': '#178600',
+  'PHP': '#4F5D95',
+  'Ruby': '#701516',
+  'Swift': '#F05138',
+  'Kotlin': '#A97BFF',
+  'Dart': '#00B4AB',
+  'Vue': '#41b883',
+  'HTML': '#e34c26',
+  'CSS': '#563d7c',
+  'SCSS': '#c6538c',
+  'Shell': '#89e051'
+}
+
+function getLanguageColor(language: string | null): string {
+  if (!language) return '#8b8b8b'
+  return languageColors[language] || '#8b8b8b'
+}
+
 const route = useRoute()
 const toast = useToast()
 const { user } = useUserSession()
@@ -16,17 +51,47 @@ if (portfolioError.value) {
   })
 }
 
-const { data: projects, status: projectsStatus } = await useFetch<Project[]>(`/api/portfolios/${portfolioId}/projects`)
+const { data: projects, status: projectsStatus, refresh: refreshProjects } = await useFetch<Project[]>(`/api/portfolios/${portfolioId}/projects`)
 
 const isLoading = computed(() => portfolioStatus.value === 'pending' || projectsStatus.value === 'pending')
 const hasProjects = computed(() => projects.value && projects.value.length > 0)
 
-function handleSync() {
-  toast.add({
-    title: 'Скоро',
-    description: 'Синхронизация с GitHub будет доступна в следующем обновлении',
-    color: 'warning'
-  })
+const isSyncing = ref(false)
+const syncMessage = ref('')
+
+async function handleSync() {
+  isSyncing.value = true
+  syncMessage.value = 'Синхронизация с GitHub...'
+
+  const extendedTimer = setTimeout(() => {
+    syncMessage.value = 'Ещё загружаем, подождите...'
+  }, 5000)
+
+  try {
+    const result = await $fetch<SyncResponse>(`/api/portfolios/${portfolioId}/github/sync`, {
+      method: 'POST'
+    })
+
+    toast.add({
+      title: 'Успешно',
+      description: `Импортировано: ${result.imported}, обновлено: ${result.updated}`,
+      color: 'success'
+    })
+
+    await refreshProjects()
+  } catch (error: unknown) {
+    const fetchError = error as { data?: { message?: string } }
+    const message = fetchError.data?.message || 'Не удалось синхронизировать репозитории'
+    toast.add({
+      title: 'Ошибка',
+      description: message,
+      color: 'error'
+    })
+  } finally {
+    clearTimeout(extendedTimer)
+    isSyncing.value = false
+    syncMessage.value = ''
+  }
 }
 
 function handleManualAdd() {
@@ -102,11 +167,24 @@ useSeoMeta({
           Импортируйте репозитории с GitHub или добавьте проекты вручную для отображения в портфолио.
         </p>
 
+        <div
+          v-if="isSyncing"
+          class="mt-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-4 h-4 animate-spin"
+          />
+          {{ syncMessage }}
+        </div>
+
         <template #footer>
           <div class="flex gap-2">
             <UButton
               label="Синхронизировать с GitHub"
               icon="i-simple-icons-github"
+              :loading="isSyncing"
+              :disabled="isSyncing"
               @click="handleSync"
             />
             <UButton
@@ -114,6 +192,7 @@ useSeoMeta({
               icon="i-lucide-plus"
               variant="outline"
               color="neutral"
+              :disabled="isSyncing"
               @click="handleManualAdd"
             />
           </div>
@@ -150,7 +229,10 @@ useSeoMeta({
                       v-if="project.language"
                       class="flex items-center gap-1"
                     >
-                      <span class="w-3 h-3 rounded-full bg-blue-500" />
+                      <span
+                        class="w-3 h-3 rounded-full"
+                        :style="{ backgroundColor: getLanguageColor(project.language) }"
+                      />
                       {{ project.language }}
                     </span>
                     <span
@@ -177,6 +259,7 @@ useSeoMeta({
 
         <ProjectsEmptyState
           v-else
+          :is-syncing="isSyncing"
           @sync="handleSync"
           @add-manual="handleManualAdd"
         />
