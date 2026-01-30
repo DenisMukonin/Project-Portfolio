@@ -216,7 +216,21 @@ useSeoMeta({
               <div class="flex items-start justify-between">
                 <div>
                   <h3 class="font-medium">
-                    {{ project.name }}
+                    <a
+                      v-if="project.url"
+                      :href="project.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="hover:text-primary-500 hover:underline inline-flex items-center gap-1"
+                      :aria-label="`Открыть ${project.name} на GitHub`"
+                    >
+                      {{ project.name }}
+                      <UIcon
+                        name="i-lucide-external-link"
+                        class="w-4 h-4"
+                      />
+                    </a>
+                    <span v-else>{{ project.name }}</span>
                   </h3>
                   <p
                     v-if="project.description"
@@ -247,11 +261,25 @@ useSeoMeta({
                     </span>
                   </div>
                 </div>
-                <UBadge
-                  :color="project.isVisible ? 'success' : 'neutral'"
-                  variant="subtle"
-                  :label="project.isVisible ? 'Видимый' : 'Скрытый'"
-                />
+                <div class="flex items-center gap-2">
+                  <UButton
+                    v-if="project.url"
+                    :href="project.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    icon="i-simple-icons-github"
+                    variant="ghost"
+                    color="neutral"
+                    size="sm"
+                    aria-label="Открыть на GitHub"
+                    title="Открыть на GitHub"
+                  />
+                  <UBadge
+                    :color="project.isVisible ? 'success' : 'neutral'"
+                    variant="subtle"
+                    :label="project.isVisible ? 'Видимый' : 'Скрытый'"
+                  />
+                </div>
               </div>
             </div>
           </div>
