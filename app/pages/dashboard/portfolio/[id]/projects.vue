@@ -58,6 +58,55 @@ const hasProjects = computed(() => projects.value && projects.value.length > 0)
 
 const isSyncing = ref(false)
 const syncMessage = ref('')
+const togglingProjects = ref<Set<string>>(new Set())
+
+async function handleToggleVisibility(project: Project) {
+  if (togglingProjects.value.has(project.id)) return
+
+  const newVisibility = !project.isVisible
+
+  // Add to toggling set and save original state
+  togglingProjects.value.add(project.id)
+  const originalVisibility = project.isVisible
+
+  // Optimistic update
+  const projectsList = projects.value
+  if (!projectsList) return
+
+  const idx = projectsList.findIndex(p => p.id === project.id)
+  const projectToUpdate = idx >= 0 ? projectsList[idx] : null
+  if (projectToUpdate) {
+    projectToUpdate.isVisible = newVisibility
+  }
+
+  try {
+    await $fetch(`/api/portfolios/${portfolioId}/projects/${project.id}`, {
+      method: 'PUT',
+      body: { isVisible: newVisibility }
+    })
+
+    toast.add({
+      title: 'Успешно',
+      description: newVisibility ? 'Проект теперь видимый' : 'Проект теперь скрытый',
+      color: 'success'
+    })
+  } catch (error: unknown) {
+    // Revert on error
+    if (projectToUpdate) {
+      projectToUpdate.isVisible = originalVisibility
+    }
+
+    const fetchError = error as { data?: { message?: string } }
+    const message = fetchError.data?.message || 'Не удалось изменить видимость проекта'
+    toast.add({
+      title: 'Ошибка',
+      description: message,
+      color: 'error'
+    })
+  } finally {
+    togglingProjects.value.delete(project.id)
+  }
+}
 
 async function handleSync() {
   isSyncing.value = true
@@ -274,11 +323,21 @@ useSeoMeta({
                     aria-label="Открыть на GitHub"
                     title="Открыть на GitHub"
                   />
-                  <UBadge
+                  <UButton
                     :color="project.isVisible ? 'success' : 'neutral'"
                     variant="subtle"
-                    :label="project.isVisible ? 'Видимый' : 'Скрытый'"
-                  />
+                    size="xs"
+                    :loading="togglingProjects.has(project.id)"
+                    :disabled="togglingProjects.has(project.id)"
+                    :title="project.isVisible ? 'Нажмите, чтобы скрыть' : 'Нажмите, чтобы показать'"
+                    @click="handleToggleVisibility(project)"
+                  >
+                    <UIcon
+                      :name="project.isVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
+                      class="w-4 h-4 mr-1"
+                    />
+                    {{ project.isVisible ? 'Видимый' : 'Скрытый' }}
+                  </UButton>
                 </div>
               </div>
             </div>
