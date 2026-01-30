@@ -6,7 +6,7 @@ export default defineOAuthGitHubEventHandler({
   config: {
     scope: ['user:email', 'read:user']
   },
-  async onSuccess(event, { user: githubUser }) {
+  async onSuccess(event, { user: githubUser, tokens }) {
     const existingUser = await db.select()
       .from(users)
       .where(eq(users.githubId, String(githubUser.id)))
@@ -53,6 +53,7 @@ export default defineOAuthGitHubEventHandler({
         bio: dbUser.bio,
         socialLinks: dbUser.socialLinks as import('~~/shared/types/social-links').SocialLinks | null
       },
+      githubAccessToken: tokens.access_token,
       loggedInAt: Date.now()
     })
 

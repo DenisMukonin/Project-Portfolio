@@ -14,6 +14,7 @@ declare module '#auth-utils' {
   }
 
   interface UserSession {
+    githubAccessToken?: string
     loggedInAt: number
   }
 }

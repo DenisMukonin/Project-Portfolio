@@ -364,6 +364,16 @@ useSeoMeta({
               <span class="ml-2">{{ new Date(portfolio.updatedAt).toLocaleDateString('ru-RU') }}</span>
             </div>
           </div>
+
+          <template #footer>
+            <UButton
+              :to="`/dashboard/portfolio/${portfolioId}/projects`"
+              label="Управление проектами"
+              icon="i-lucide-folder-git-2"
+              variant="outline"
+              block
+            />
+          </template>
         </UCard>
 
         <UCard class="border border-red-500 dark:border-red-400">
