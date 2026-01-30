@@ -63,6 +63,10 @@ const togglingProjects = ref<Set<string>>(new Set())
 async function handleToggleVisibility(project: Project) {
   if (togglingProjects.value.has(project.id)) return
 
+  // Check projectsList BEFORE adding to toggling set
+  const projectsList = projects.value
+  if (!projectsList) return
+
   const newVisibility = !project.isVisible
 
   // Add to toggling set and save original state
@@ -70,9 +74,6 @@ async function handleToggleVisibility(project: Project) {
   const originalVisibility = project.isVisible
 
   // Optimistic update
-  const projectsList = projects.value
-  if (!projectsList) return
-
   const idx = projectsList.findIndex(p => p.id === project.id)
   const projectToUpdate = idx >= 0 ? projectsList[idx] : null
   if (projectToUpdate) {
@@ -330,6 +331,7 @@ useSeoMeta({
                     :loading="togglingProjects.has(project.id)"
                     :disabled="togglingProjects.has(project.id)"
                     :title="project.isVisible ? 'Нажмите, чтобы скрыть' : 'Нажмите, чтобы показать'"
+                    :aria-label="project.isVisible ? `Скрыть проект ${project.name}` : `Показать проект ${project.name}`"
                     @click="handleToggleVisibility(project)"
                   >
                     <UIcon

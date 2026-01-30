@@ -2,6 +2,9 @@ import { eq, and } from 'drizzle-orm'
 import { db } from '~~/server/utils/db'
 import { portfolios, projects } from '~~/server/db/schema'
 
+// UUID v4 format validation
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const portfolioId = getRouterParam(event, 'id')
@@ -14,7 +17,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Validate UUID format to prevent database errors
+  if (!UUID_REGEX.test(portfolioId) || !UUID_REGEX.test(projectId)) {
+    throw createError({
+      statusCode: 400,
+      message: 'Invalid ID format'
+    })
+  }
+
   // Validate portfolio ownership
+  // NOTE: Could be optimized with JOIN query in future iteration
   const portfolio = await db.query.portfolios.findFirst({
     where: eq(portfolios.id, portfolioId)
   })
