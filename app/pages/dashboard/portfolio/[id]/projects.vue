@@ -52,20 +52,20 @@ if (portfolioError.value) {
   })
 }
 
-const { data: projects, status: projectsStatus, refresh: refreshProjects } = await useFetch<Project[]>(`/api/portfolios/${portfolioId}/projects`)
+const { data: projectsData, status: projectsStatus, refresh: refreshProjects } = await useFetch<Project[]>(`/api/portfolios/${portfolioId}/projects`)
+
+// Local reactive copy for sortable - syncs from server on fetch
+const projects = shallowRef<Project[]>([])
+
+// Sync from server data when it changes
+watch(projectsData, (newData) => {
+  if (newData) {
+    projects.value = [...newData]
+  }
+}, { immediate: true })
 
 const isLoading = computed(() => portfolioStatus.value === 'pending' || projectsStatus.value === 'pending')
 const hasProjects = computed(() => projects.value && projects.value.length > 0)
-
-// Sortable requires non-undefined array - create a wrapper ref
-const sortableProjects = computed({
-  get: () => projects.value || [],
-  set: (val) => {
-    if (projects.value) {
-      projects.value = val
-    }
-  }
-})
 
 const isSyncing = ref(false)
 const syncMessage = ref('')
@@ -75,12 +75,23 @@ const isReordering = ref(false)
 // Drag-and-drop sortable setup
 const projectsContainer = ref<HTMLElement | null>(null)
 
-useSortable(projectsContainer, sortableProjects, {
+useSortable(projectsContainer, projects, {
   handle: '.drag-handle',
   animation: 150,
   ghostClass: 'sortable-ghost',
-  onEnd: () => {
-    handleReorder()
+  onUpdate: (event) => {
+    // Manually reorder the array based on drag result
+    const { oldIndex, newIndex } = event
+    if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
+      const arr = [...projects.value]
+      const movedItem = arr[oldIndex]
+      if (movedItem) {
+        arr.splice(oldIndex, 1)
+        arr.splice(newIndex, 0, movedItem)
+        projects.value = arr
+        handleReorder()
+      }
+    }
   }
 })
 
