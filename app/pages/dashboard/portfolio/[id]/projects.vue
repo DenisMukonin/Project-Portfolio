@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useSortable } from '@vueuse/integrations/useSortable'
 import type { Portfolio } from '~~/server/db/schema/portfolios'
 import type { Project } from '~~/server/db/schema/projects'
 
@@ -56,9 +57,70 @@ const { data: projects, status: projectsStatus, refresh: refreshProjects } = awa
 const isLoading = computed(() => portfolioStatus.value === 'pending' || projectsStatus.value === 'pending')
 const hasProjects = computed(() => projects.value && projects.value.length > 0)
 
+// Sortable requires non-undefined array - create a wrapper ref
+const sortableProjects = computed({
+  get: () => projects.value || [],
+  set: (val) => {
+    if (projects.value) {
+      projects.value = val
+    }
+  }
+})
+
 const isSyncing = ref(false)
 const syncMessage = ref('')
 const togglingProjects = ref<Set<string>>(new Set())
+const isReordering = ref(false)
+
+// Drag-and-drop sortable setup
+const projectsContainer = ref<HTMLElement | null>(null)
+
+useSortable(projectsContainer, sortableProjects, {
+  handle: '.drag-handle',
+  animation: 150,
+  ghostClass: 'sortable-ghost',
+  onEnd: () => {
+    handleReorder()
+  }
+})
+
+async function handleReorder() {
+  const projectsList = projects.value
+  if (!projectsList || isReordering.value) return
+
+  isReordering.value = true
+
+  const orderUpdates = projectsList.map((project, index) => ({
+    id: project.id,
+    orderIndex: index
+  }))
+
+  try {
+    await $fetch(`/api/portfolios/${portfolioId}/projects/reorder`, {
+      method: 'POST',
+      body: { orders: orderUpdates }
+    })
+
+    toast.add({
+      title: 'Успешно',
+      description: 'Порядок проектов сохранён',
+      color: 'success'
+    })
+  } catch (error: unknown) {
+    // Revert by refreshing from server
+    await refreshProjects()
+
+    const fetchError = error as { data?: { message?: string } }
+    const message = fetchError.data?.message || 'Не удалось сохранить порядок проектов'
+    toast.add({
+      title: 'Ошибка',
+      description: message,
+      color: 'error'
+    })
+  } finally {
+    isReordering.value = false
+  }
+}
 
 async function handleToggleVisibility(project: Project) {
   if (togglingProjects.value.has(project.id)) return
@@ -257,89 +319,106 @@ useSeoMeta({
         </template>
 
         <div v-if="hasProjects">
-          <div class="divide-y divide-gray-200 dark:divide-gray-700">
+          <div
+            ref="projectsContainer"
+            class="divide-y divide-gray-200 dark:divide-gray-700"
+          >
             <div
               v-for="project in projects"
               :key="project.id"
-              class="py-4 first:pt-0 last:pb-0"
+              class="py-4 first:pt-0 last:pb-0 flex items-start gap-3"
             >
-              <div class="flex items-start justify-between">
-                <div>
-                  <h3 class="font-medium">
-                    <a
+              <!-- Drag Handle -->
+              <div
+                class="drag-handle cursor-grab pt-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                aria-label="Перетащите для изменения порядка"
+              >
+                <UIcon
+                  name="i-lucide-grip-vertical"
+                  class="w-5 h-5"
+                />
+              </div>
+
+              <!-- Project content -->
+              <div class="flex-1">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h3 class="font-medium">
+                      <a
+                        v-if="project.url"
+                        :href="project.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="hover:text-primary-500 hover:underline inline-flex items-center gap-1"
+                        :aria-label="`Открыть ${project.name} на GitHub`"
+                      >
+                        {{ project.name }}
+                        <UIcon
+                          name="i-lucide-external-link"
+                          class="w-4 h-4"
+                        />
+                      </a>
+                      <span v-else>{{ project.name }}</span>
+                    </h3>
+                    <p
+                      v-if="project.description"
+                      class="text-sm text-gray-600 dark:text-gray-400 mt-1"
+                    >
+                      {{ project.description }}
+                    </p>
+                    <div class="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                      <span
+                        v-if="project.language"
+                        class="flex items-center gap-1"
+                      >
+                        <span
+                          class="w-3 h-3 rounded-full"
+                          :style="{ backgroundColor: getLanguageColor(project.language) }"
+                        />
+                        {{ project.language }}
+                      </span>
+                      <span
+                        v-if="project.stars != null"
+                        class="flex items-center gap-1"
+                      >
+                        <UIcon
+                          name="i-lucide-star"
+                          class="w-4 h-4"
+                        />
+                        {{ project.stars }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <UButton
                       v-if="project.url"
                       :href="project.url"
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="hover:text-primary-500 hover:underline inline-flex items-center gap-1"
-                      :aria-label="`Открыть ${project.name} на GitHub`"
-                    >
-                      {{ project.name }}
-                      <UIcon
-                        name="i-lucide-external-link"
-                        class="w-4 h-4"
-                      />
-                    </a>
-                    <span v-else>{{ project.name }}</span>
-                  </h3>
-                  <p
-                    v-if="project.description"
-                    class="text-sm text-gray-600 dark:text-gray-400 mt-1"
-                  >
-                    {{ project.description }}
-                  </p>
-                  <div class="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span
-                      v-if="project.language"
-                      class="flex items-center gap-1"
-                    >
-                      <span
-                        class="w-3 h-3 rounded-full"
-                        :style="{ backgroundColor: getLanguageColor(project.language) }"
-                      />
-                      {{ project.language }}
-                    </span>
-                    <span
-                      v-if="project.stars != null"
-                      class="flex items-center gap-1"
-                    >
-                      <UIcon
-                        name="i-lucide-star"
-                        class="w-4 h-4"
-                      />
-                      {{ project.stars }}
-                    </span>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <UButton
-                    v-if="project.url"
-                    :href="project.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    icon="i-simple-icons-github"
-                    variant="ghost"
-                    color="neutral"
-                    size="sm"
-                    aria-label="Открыть на GitHub"
-                    title="Открыть на GitHub"
-                  />
-                  <UButton
-                    :color="project.isVisible ? 'success' : 'neutral'"
-                    variant="subtle"
-                    size="xs"
-                    :loading="togglingProjects.has(project.id)"
-                    :disabled="togglingProjects.has(project.id)"
-                    :title="project.isVisible ? 'Нажмите, чтобы скрыть' : 'Нажмите, чтобы показать'"
-                    :aria-label="project.isVisible ? `Скрыть проект ${project.name}` : `Показать проект ${project.name}`"
-                    @click="handleToggleVisibility(project)"
-                  >
-                    <UIcon
-                      :name="project.isVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
-                      class="w-4 h-4 mr-1"
+                      icon="i-simple-icons-github"
+                      variant="ghost"
+                      color="neutral"
+                      size="sm"
+                      aria-label="Открыть на GitHub"
+                      title="Открыть на GitHub"
                     />
-                    {{ project.isVisible ? 'Видимый' : 'Скрытый' }}
-                  </UButton>
+                    <UButton
+                      :color="project.isVisible ? 'success' : 'neutral'"
+                      variant="subtle"
+                      size="xs"
+                      :loading="togglingProjects.has(project.id)"
+                      :disabled="togglingProjects.has(project.id)"
+                      :title="project.isVisible ? 'Нажмите, чтобы скрыть' : 'Нажмите, чтобы показать'"
+                      :aria-label="project.isVisible ? `Скрыть проект ${project.name}` : `Показать проект ${project.name}`"
+                      @click="handleToggleVisibility(project)"
+                    >
+                      <UIcon
+                        :name="project.isVisible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
+                        class="w-4 h-4 mr-1"
+                      />
+                      {{ project.isVisible ? 'Видимый' : 'Скрытый' }}
+                    </UButton>
+                  </div>
                 </div>
               </div>
             </div>
@@ -356,3 +435,15 @@ useSeoMeta({
     </div>
   </div>
 </template>
+
+<style scoped>
+.sortable-ghost {
+  opacity: 0.5;
+  background: var(--ui-primary-50);
+  border-radius: 0.5rem;
+}
+
+.drag-handle {
+  touch-action: none; /* Prevent scroll on mobile */
+}
+</style>
