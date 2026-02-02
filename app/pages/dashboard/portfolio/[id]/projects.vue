@@ -71,6 +71,7 @@ const isSyncing = ref(false)
 const syncMessage = ref('')
 const togglingProjects = ref<Set<string>>(new Set())
 const isReordering = ref(false)
+const isAddModalOpen = ref(false)
 
 // Drag-and-drop sortable setup
 const projectsContainer = ref<HTMLElement | null>(null)
@@ -218,11 +219,12 @@ async function handleSync() {
 }
 
 function handleManualAdd() {
-  toast.add({
-    title: 'Скоро',
-    description: 'Добавление проектов вручную будет доступно в следующем обновлении',
-    color: 'warning'
-  })
+  isAddModalOpen.value = true
+}
+
+function handleProjectCreated(project: Project) {
+  // Add to local projects array
+  projects.value = [...projects.value, project]
 }
 
 useSeoMeta({
@@ -444,6 +446,13 @@ useSeoMeta({
         />
       </UCard>
     </div>
+
+    <!-- Add Project Modal -->
+    <ProjectAddModal
+      v-model:open="isAddModalOpen"
+      :portfolio-id="portfolioId"
+      @created="handleProjectCreated"
+    />
   </div>
 </template>
 
