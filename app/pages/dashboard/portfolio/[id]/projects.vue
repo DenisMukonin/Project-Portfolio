@@ -72,6 +72,8 @@ const syncMessage = ref('')
 const togglingProjects = ref<Set<string>>(new Set())
 const isReordering = ref(false)
 const isAddModalOpen = ref(false)
+const isEditModalOpen = ref(false)
+const editingProject = ref<Project | null>(null)
 
 // Drag-and-drop sortable setup
 const projectsContainer = ref<HTMLElement | null>(null)
@@ -225,6 +227,21 @@ function handleManualAdd() {
 function handleProjectCreated(project: Project) {
   // Add to local projects array
   projects.value = [...projects.value, project]
+}
+
+function handleEditClick(project: Project) {
+  editingProject.value = project
+  isEditModalOpen.value = true
+}
+
+function handleProjectUpdated(updatedProject: Project) {
+  // Update local projects array
+  const idx = projects.value.findIndex(p => p.id === updatedProject.id)
+  if (idx >= 0) {
+    const arr = [...projects.value]
+    arr[idx] = updatedProject
+    projects.value = arr
+  }
 }
 
 useSeoMeta({
@@ -404,6 +421,15 @@ useSeoMeta({
                   </div>
                   <div class="flex items-center gap-2">
                     <UButton
+                      icon="i-lucide-pencil"
+                      variant="ghost"
+                      color="neutral"
+                      size="sm"
+                      aria-label="Редактировать проект"
+                      title="Редактировать"
+                      @click="handleEditClick(project)"
+                    />
+                    <UButton
                       v-if="project.url"
                       :href="project.url"
                       target="_blank"
@@ -452,6 +478,14 @@ useSeoMeta({
       v-model:open="isAddModalOpen"
       :portfolio-id="portfolioId"
       @created="handleProjectCreated"
+    />
+
+    <!-- Edit Project Modal -->
+    <ProjectEditModal
+      v-model:open="isEditModalOpen"
+      :portfolio-id="portfolioId"
+      :project="editingProject"
+      @updated="handleProjectUpdated"
     />
   </div>
 </template>
