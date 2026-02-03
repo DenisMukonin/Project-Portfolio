@@ -366,13 +366,22 @@ useSeoMeta({
           </div>
 
           <template #footer>
-            <UButton
-              :to="`/dashboard/portfolio/${portfolioId}/projects`"
-              label="Управление проектами"
-              icon="i-lucide-folder-git-2"
-              variant="outline"
-              block
-            />
+            <div class="space-y-2">
+              <UButton
+                :to="`/dashboard/portfolio/${portfolioId}/projects`"
+                label="Управление проектами"
+                icon="i-lucide-folder-git-2"
+                variant="outline"
+                block
+              />
+              <UButton
+                :to="`/dashboard/portfolio/${portfolioId}/experience`"
+                label="Опыт работы"
+                icon="i-lucide-briefcase"
+                variant="outline"
+                block
+              />
+            </div>
           </template>
         </UCard>
 
