@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useSortable } from '@vueuse/integrations/useSortable'
 import type { Experience } from '~~/server/db/schema/experiences'
 import type { Portfolio } from '~~/server/db/schema/portfolios'
 
@@ -17,9 +18,76 @@ if (portfolioError.value) {
 }
 
 // Fetch experiences
-const { data: experiences, status } = await useFetch<Experience[]>(
+const { data: experiencesData, status, refresh } = await useFetch<Experience[]>(
   `/api/portfolios/${portfolioId}/experiences`
 )
+
+// Local reactive copy for sortable - syncs from server on fetch
+const experiences = shallowRef<Experience[]>([])
+
+// Sync from server data when it changes
+watch(experiencesData, (newData) => {
+  if (newData) {
+    experiences.value = [...newData]
+  }
+}, { immediate: true })
+
+// Drag-and-drop reorder
+const experiencesContainer = ref<HTMLElement | null>(null)
+
+useSortable(experiencesContainer, experiences, {
+  handle: '.drag-handle',
+  animation: 150,
+  ghostClass: 'sortable-ghost',
+  onUpdate: (evt) => {
+    // Manual array reorder (VueUse may not sync correctly)
+    const { oldIndex, newIndex } = evt
+    if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
+      const list = [...experiences.value]
+      const movedItem = list[oldIndex]
+      if (movedItem) {
+        list.splice(oldIndex, 1)
+        list.splice(newIndex, 0, movedItem)
+        experiences.value = list
+        handleReorder()
+      }
+    }
+  }
+})
+
+async function handleReorder() {
+  const expList = experiences.value
+  if (!expList || expList.length <= 1) return
+
+  const orderUpdates = expList.map((exp, index) => ({
+    id: exp.id,
+    orderIndex: index
+  }))
+
+  try {
+    await $fetch(`/api/portfolios/${portfolioId}/experiences/reorder`, {
+      method: 'POST',
+      body: { orders: orderUpdates }
+    })
+
+    toast.add({
+      title: 'Успешно',
+      description: 'Порядок опыта работы сохранён',
+      color: 'success'
+    })
+  } catch (error: unknown) {
+    // Revert by refreshing from server
+    await refresh()
+
+    const fetchError = error as { data?: { message?: string } }
+    const message = fetchError.data?.message || 'Не удалось сохранить порядок'
+    toast.add({
+      title: 'Ошибка',
+      description: message,
+      color: 'error'
+    })
+  }
+}
 
 const isAddModalOpen = ref(false)
 const isEditModalOpen = ref(false)
@@ -32,9 +100,7 @@ const isDeleting = ref(false)
 
 function handleExperienceCreated(experience: Experience) {
   // Optimistic update - add to local list at the beginning (newest first)
-  if (experiences.value) {
-    experiences.value = [experience, ...experiences.value]
-  }
+  experiences.value = [experience, ...experiences.value]
 }
 
 function handleEdit(exp: Experience) {
@@ -44,11 +110,11 @@ function handleEdit(exp: Experience) {
 
 function handleExperienceUpdated(updated: Experience) {
   // Update local list
-  if (experiences.value) {
-    const index = experiences.value.findIndex(e => e.id === updated.id)
-    if (index !== -1) {
-      experiences.value[index] = updated
-    }
+  const index = experiences.value.findIndex(e => e.id === updated.id)
+  if (index !== -1) {
+    const list = [...experiences.value]
+    list[index] = updated
+    experiences.value = list
   }
 }
 
@@ -75,9 +141,7 @@ async function confirmDelete() {
     )
 
     // Optimistic update - remove from local list
-    if (experiences.value) {
-      experiences.value = experiences.value.filter(e => e.id !== expToDelete.id)
-    }
+    experiences.value = experiences.value.filter(e => e.id !== expToDelete.id)
 
     toast.add({
       title: 'Успешно',
@@ -163,7 +227,7 @@ useSeoMeta({
 
     <!-- Empty state -->
     <UCard
-      v-else-if="!experiences?.length"
+      v-else-if="experiences.length === 0"
       class="text-center py-12"
     >
       <UIcon
@@ -186,6 +250,7 @@ useSeoMeta({
     <!-- Experience list -->
     <div
       v-else
+      ref="experiencesContainer"
       class="space-y-4"
     >
       <UCard
@@ -193,7 +258,15 @@ useSeoMeta({
         :key="exp.id"
       >
         <div class="flex justify-between items-start">
-          <div>
+          <!-- Drag Handle -->
+          <div class="drag-handle cursor-grab pr-3 pt-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <UIcon
+              name="i-lucide-grip-vertical"
+              class="w-5 h-5"
+            />
+          </div>
+
+          <div class="flex-1">
             <h3 class="text-lg font-semibold">
               {{ exp.title }}
             </h3>
@@ -294,3 +367,15 @@ useSeoMeta({
     </UModal>
   </div>
 </template>
+
+<style scoped>
+.sortable-ghost {
+  opacity: 0.5;
+  background: var(--ui-primary-50);
+  border-radius: 0.5rem;
+}
+
+.drag-handle {
+  touch-action: none; /* Prevent scroll on mobile */
+}
+</style>

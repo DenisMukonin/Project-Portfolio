@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm'
+import { eq, asc, desc } from 'drizzle-orm'
 import { db } from '~~/server/utils/db'
 import { portfolios, experiences } from '~~/server/db/schema'
 
@@ -36,10 +36,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, message: 'Access denied' })
   }
 
-  // Fetch experiences ordered by start date (newest first)
+  // Fetch experiences ordered by orderIndex (custom order), then startDate
   const result = await db.query.experiences.findMany({
     where: eq(experiences.portfolioId, portfolioId),
-    orderBy: [desc(experiences.startDate)]
+    orderBy: [asc(experiences.orderIndex), desc(experiences.startDate)]
   })
 
   return result
