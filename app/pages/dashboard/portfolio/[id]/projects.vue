@@ -75,6 +75,33 @@ const isAddModalOpen = ref(false)
 const isEditModalOpen = ref(false)
 const editingProject = ref<Project | null>(null)
 
+// Error state for GitHub sync (Story 4-8)
+const syncError = ref<string | null>(null)
+const retryCount = ref(0)
+
+// Map server error messages to user-friendly Russian messages
+const syncErrorMessage = computed(() => {
+  if (!syncError.value) return ''
+
+  const errorMap: Record<string, string> = {
+    'GitHub token expired': 'Токен GitHub истёк. Пожалуйста, войдите заново.',
+    'GitHub API rate limit': 'Превышен лимит запросов к GitHub. Подождите несколько минут.',
+    'rate limit': 'Превышен лимит запросов к GitHub. Подождите несколько минут.',
+    'Insufficient permissions': 'Недостаточно прав. Пожалуйста, войдите заново и разрешите доступ.',
+    'Failed to sync': 'Не удалось синхронизировать репозитории.',
+    'GitHub token not found': 'Токен GitHub не найден. Пожалуйста, войдите заново.'
+  }
+
+  // Find matching key or return generic message
+  for (const [key, message] of Object.entries(errorMap)) {
+    if (syncError.value.toLowerCase().includes(key.toLowerCase())) {
+      return message
+    }
+  }
+
+  return 'Произошла ошибка при синхронизации с GitHub.'
+})
+
 // Drag-and-drop sortable setup
 const projectsContainer = ref<HTMLElement | null>(null)
 
@@ -188,6 +215,7 @@ async function handleToggleVisibility(project: Project) {
 async function handleSync() {
   isSyncing.value = true
   syncMessage.value = 'Синхронизация с GitHub...'
+  syncError.value = null // Clear previous error on new attempt
 
   const extendedTimer = setTimeout(() => {
     syncMessage.value = 'Ещё загружаем, подождите...'
@@ -198,6 +226,10 @@ async function handleSync() {
       method: 'POST'
     })
 
+    // SUCCESS: Reset error state
+    syncError.value = null
+    retryCount.value = 0
+
     toast.add({
       title: 'Успешно',
       description: `Импортировано: ${result.imported}, обновлено: ${result.updated}`,
@@ -207,17 +239,21 @@ async function handleSync() {
     await refreshProjects()
   } catch (error: unknown) {
     const fetchError = error as { data?: { message?: string } }
-    const message = fetchError.data?.message || 'Не удалось синхронизировать репозитории'
-    toast.add({
-      title: 'Ошибка',
-      description: message,
-      color: 'error'
-    })
+    const message = fetchError.data?.message || 'Unknown error'
+
+    // Set error state for inline UI display (more prominent than toast)
+    syncError.value = message
   } finally {
     clearTimeout(extendedTimer)
     isSyncing.value = false
     syncMessage.value = ''
   }
+}
+
+function handleRetry() {
+  if (isSyncing.value) return // Guard against double-click
+  retryCount.value++
+  handleSync()
 }
 
 function handleManualAdd() {
@@ -318,6 +354,52 @@ useSeoMeta({
             class="w-4 h-4 animate-spin"
           />
           {{ syncMessage }}
+        </div>
+
+        <!-- Error State with Retry (Story 4-8) -->
+        <div
+          v-if="syncError && !isSyncing"
+          role="alert"
+          aria-live="polite"
+          class="mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+        >
+          <div class="flex items-start gap-3">
+            <UIcon
+              name="i-lucide-alert-circle"
+              class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"
+            />
+            <div class="flex-1">
+              <p class="text-red-800 dark:text-red-200 font-medium">
+                {{ syncErrorMessage }}
+              </p>
+              <p
+                v-if="retryCount >= 3"
+                class="text-sm text-red-600 dark:text-red-300 mt-1"
+              >
+                Попробуйте позже или добавьте проекты вручную.
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <UButton
+              label="Повторить"
+              icon="i-lucide-refresh-cw"
+              variant="outline"
+              color="error"
+              size="sm"
+              :loading="isSyncing"
+              :disabled="isSyncing"
+              @click="handleRetry"
+            />
+            <UButton
+              label="Добавить вручную"
+              icon="i-lucide-plus"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              @click="handleManualAdd"
+            />
+          </div>
         </div>
 
         <template #footer>
