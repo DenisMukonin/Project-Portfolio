@@ -381,6 +381,13 @@ useSeoMeta({
                 variant="outline"
                 block
               />
+              <UButton
+                :to="`/dashboard/portfolio/${portfolioId}/education`"
+                label="Образование"
+                icon="i-lucide-graduation-cap"
+                variant="outline"
+                block
+              />
             </div>
           </template>
         </UCard>

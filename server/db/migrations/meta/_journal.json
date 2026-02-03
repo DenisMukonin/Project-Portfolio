@@ -43,6 +43,13 @@
       "when": 1770103532101,
       "tag": "0005_spooky_wong",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1770123453494,
+      "tag": "0006_green_silk_fever",
+      "breakpoints": true
     }
   ]
 }
