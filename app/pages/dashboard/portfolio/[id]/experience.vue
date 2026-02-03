@@ -3,6 +3,7 @@ import type { Experience } from '~~/server/db/schema/experiences'
 import type { Portfolio } from '~~/server/db/schema/portfolios'
 
 const route = useRoute()
+const toast = useToast()
 const portfolioId = route.params.id as string
 
 // Fetch portfolio for context
@@ -24,6 +25,11 @@ const isAddModalOpen = ref(false)
 const isEditModalOpen = ref(false)
 const editingExperience = ref<Experience | null>(null)
 
+// Delete state
+const isDeleteModalOpen = ref(false)
+const deletingExperience = ref<Experience | null>(null)
+const isDeleting = ref(false)
+
 function handleExperienceCreated(experience: Experience) {
   // Optimistic update - add to local list at the beginning (newest first)
   if (experiences.value) {
@@ -43,6 +49,54 @@ function handleExperienceUpdated(updated: Experience) {
     if (index !== -1) {
       experiences.value[index] = updated
     }
+  }
+}
+
+function handleDelete(exp: Experience) {
+  deletingExperience.value = exp
+  isDeleteModalOpen.value = true
+}
+
+function cancelDelete() {
+  isDeleteModalOpen.value = false
+  deletingExperience.value = null
+}
+
+async function confirmDelete() {
+  if (!deletingExperience.value) return
+
+  isDeleting.value = true
+  const expToDelete = deletingExperience.value
+
+  try {
+    await $fetch(
+      `/api/portfolios/${portfolioId}/experiences/${expToDelete.id}`,
+      { method: 'DELETE' }
+    )
+
+    // Optimistic update - remove from local list
+    if (experiences.value) {
+      experiences.value = experiences.value.filter(e => e.id !== expToDelete.id)
+    }
+
+    toast.add({
+      title: 'Успешно',
+      description: 'Опыт работы удалён',
+      color: 'success'
+    })
+
+    isDeleteModalOpen.value = false
+    deletingExperience.value = null
+  } catch (error: unknown) {
+    const fetchError = error as { data?: { message?: string } }
+    const message = fetchError.data?.message || 'Не удалось удалить опыт работы'
+    toast.add({
+      title: 'Ошибка',
+      description: message,
+      color: 'error'
+    })
+  } finally {
+    isDeleting.value = false
   }
 }
 
@@ -171,7 +225,14 @@ useSeoMeta({
               aria-label="Редактировать"
               @click="handleEdit(exp)"
             />
-            <!-- Delete button will be added in Story 5.3 -->
+            <UButton
+              icon="i-lucide-trash-2"
+              variant="ghost"
+              color="error"
+              size="sm"
+              aria-label="Удалить"
+              @click="handleDelete(exp)"
+            />
           </div>
         </div>
       </UCard>
@@ -191,5 +252,45 @@ useSeoMeta({
       :experience="editingExperience"
       @updated="handleExperienceUpdated"
     />
+
+    <!-- Delete Confirmation Modal -->
+    <UModal v-model:open="isDeleteModalOpen">
+      <template #header>
+        <h3 class="text-lg font-semibold">
+          Удалить опыт работы?
+        </h3>
+      </template>
+
+      <div class="p-4">
+        <p class="text-gray-600 dark:text-gray-400">
+          Вы уверены, что хотите удалить эту запись?
+        </p>
+        <p
+          v-if="deletingExperience"
+          class="mt-2 font-medium"
+        >
+          {{ deletingExperience.title }} — {{ deletingExperience.company }}
+        </p>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton
+            label="Отмена"
+            variant="ghost"
+            color="neutral"
+            :disabled="isDeleting"
+            @click="cancelDelete"
+          />
+          <UButton
+            label="Удалить"
+            color="error"
+            :loading="isDeleting"
+            :disabled="isDeleting"
+            @click="confirmDelete"
+          />
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
