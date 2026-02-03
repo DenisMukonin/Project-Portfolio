@@ -68,6 +68,7 @@ const isChangingTemplate = ref(false)
 const showPreview = ref(false)
 const previewTemplate = ref<TemplateDefinition | null>(null)
 const showPortfolioPreview = ref(false)
+const isPublishing = ref(false)
 
 // Preview data - use current form data (not saved data) for live preview
 // Note: Using explicit undefined checks to allow empty strings (user clearing a field)
@@ -150,6 +151,64 @@ async function handleDelete() {
 
 function normalizeSlugInput() {
   form.slug = form.slug.toLowerCase().replace(/[^a-z0-9-]/g, '')
+}
+
+async function handlePublish() {
+  isPublishing.value = true
+  try {
+    await $fetch(`/api/portfolios/${portfolioId}/publish`, { method: 'POST' })
+    toast.add({
+      title: 'Успешно',
+      description: 'Портфолио опубликовано',
+      color: 'success'
+    })
+    await refresh()
+  } catch (err: unknown) {
+    const message = err && typeof err === 'object' && 'data' in err
+      ? (err.data as { message?: string })?.message
+      : 'Не удалось опубликовать портфолио'
+    toast.add({
+      title: 'Ошибка',
+      description: message || 'Не удалось опубликовать портфолио',
+      color: 'error'
+    })
+  } finally {
+    isPublishing.value = false
+  }
+}
+
+async function handleUnpublish() {
+  isPublishing.value = true
+  try {
+    await $fetch(`/api/portfolios/${portfolioId}/unpublish`, { method: 'POST' })
+    toast.add({
+      title: 'Успешно',
+      description: 'Портфолио снято с публикации',
+      color: 'success'
+    })
+    await refresh()
+  } catch (err: unknown) {
+    const message = err && typeof err === 'object' && 'data' in err
+      ? (err.data as { message?: string })?.message
+      : 'Не удалось снять портфолио с публикации'
+    toast.add({
+      title: 'Ошибка',
+      description: message || 'Не удалось снять портфолио с публикации',
+      color: 'error'
+    })
+  } finally {
+    isPublishing.value = false
+  }
+}
+
+function copyPublicUrl() {
+  const url = `${window.location.origin}/${portfolio.value?.slug}`
+  navigator.clipboard.writeText(url)
+  toast.add({
+    title: 'Скопировано!',
+    description: 'URL скопирован в буфер обмена',
+    color: 'success'
+  })
 }
 
 // Shared function to apply template (DRY principle)
@@ -366,28 +425,85 @@ useSeoMeta({
           </div>
 
           <template #footer>
-            <div class="space-y-2">
-              <UButton
-                :to="`/dashboard/portfolio/${portfolioId}/projects`"
-                label="Управление проектами"
-                icon="i-lucide-folder-git-2"
-                variant="outline"
-                block
-              />
-              <UButton
-                :to="`/dashboard/portfolio/${portfolioId}/experience`"
-                label="Опыт работы"
-                icon="i-lucide-briefcase"
-                variant="outline"
-                block
-              />
-              <UButton
-                :to="`/dashboard/portfolio/${portfolioId}/education`"
-                label="Образование"
-                icon="i-lucide-graduation-cap"
-                variant="outline"
-                block
-              />
+            <div class="space-y-4">
+              <!-- Publish/Unpublish Section -->
+              <div class="pb-4 border-b border-gray-200 dark:border-gray-700">
+                <div
+                  v-if="portfolio.isPublished"
+                  class="space-y-3"
+                >
+                  <div class="flex items-center gap-2 text-sm">
+                    <span class="text-gray-500 dark:text-gray-400">Публичный URL:</span>
+                    <a
+                      :href="`/${portfolio.slug}`"
+                      target="_blank"
+                      class="text-primary-600 dark:text-primary-400 hover:underline truncate"
+                    >
+                      {{ portfolio.slug }}
+                    </a>
+                    <UButton
+                      icon="i-lucide-copy"
+                      size="xs"
+                      variant="ghost"
+                      color="neutral"
+                      aria-label="Копировать URL"
+                      @click="copyPublicUrl"
+                    />
+                    <UButton
+                      icon="i-lucide-external-link"
+                      size="xs"
+                      variant="ghost"
+                      color="neutral"
+                      :to="`/${portfolio.slug}`"
+                      target="_blank"
+                      aria-label="Открыть в новой вкладке"
+                    />
+                  </div>
+                  <UButton
+                    label="Снять с публикации"
+                    icon="i-lucide-eye-off"
+                    variant="outline"
+                    color="warning"
+                    block
+                    :loading="isPublishing"
+                    @click="handleUnpublish"
+                  />
+                </div>
+                <UButton
+                  v-else
+                  label="Опубликовать"
+                  icon="i-lucide-globe"
+                  color="success"
+                  block
+                  :loading="isPublishing"
+                  @click="handlePublish"
+                />
+              </div>
+
+              <!-- Navigation Buttons -->
+              <div class="space-y-2">
+                <UButton
+                  :to="`/dashboard/portfolio/${portfolioId}/projects`"
+                  label="Управление проектами"
+                  icon="i-lucide-folder-git-2"
+                  variant="outline"
+                  block
+                />
+                <UButton
+                  :to="`/dashboard/portfolio/${portfolioId}/experience`"
+                  label="Опыт работы"
+                  icon="i-lucide-briefcase"
+                  variant="outline"
+                  block
+                />
+                <UButton
+                  :to="`/dashboard/portfolio/${portfolioId}/education`"
+                  label="Образование"
+                  icon="i-lucide-graduation-cap"
+                  variant="outline"
+                  block
+                />
+              </div>
             </div>
           </template>
         </UCard>
