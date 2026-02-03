@@ -21,11 +21,28 @@ const { data: experiences, status } = await useFetch<Experience[]>(
 )
 
 const isAddModalOpen = ref(false)
+const isEditModalOpen = ref(false)
+const editingExperience = ref<Experience | null>(null)
 
 function handleExperienceCreated(experience: Experience) {
   // Optimistic update - add to local list at the beginning (newest first)
   if (experiences.value) {
     experiences.value = [experience, ...experiences.value]
+  }
+}
+
+function handleEdit(exp: Experience) {
+  editingExperience.value = exp
+  isEditModalOpen.value = true
+}
+
+function handleExperienceUpdated(updated: Experience) {
+  // Update local list
+  if (experiences.value) {
+    const index = experiences.value.findIndex(e => e.id === updated.id)
+    if (index !== -1) {
+      experiences.value[index] = updated
+    }
   }
 }
 
@@ -146,7 +163,15 @@ useSeoMeta({
             </p>
           </div>
           <div class="flex gap-2">
-            <!-- Edit/Delete buttons will be added in Story 5.2/5.3 -->
+            <UButton
+              icon="i-lucide-pencil"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              aria-label="Редактировать"
+              @click="handleEdit(exp)"
+            />
+            <!-- Delete button will be added in Story 5.3 -->
           </div>
         </div>
       </UCard>
@@ -157,6 +182,14 @@ useSeoMeta({
       v-model:open="isAddModalOpen"
       :portfolio-id="portfolioId"
       @created="handleExperienceCreated"
+    />
+
+    <!-- Edit Experience Modal -->
+    <ExperienceEditModal
+      v-model:open="isEditModalOpen"
+      :portfolio-id="portfolioId"
+      :experience="editingExperience"
+      @updated="handleExperienceUpdated"
     />
   </div>
 </template>
