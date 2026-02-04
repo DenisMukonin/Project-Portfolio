@@ -13,10 +13,49 @@ if (error.value) {
   })
 }
 
-// SEO meta tags (basic - Story 5.11 will enhance with OpenGraph)
+// Get full URL for canonical and og:url
+const requestURL = useRequestURL()
+const fullUrl = `${requestURL.origin}/p/${slug}`
+
+// Default image for missing avatar (AC #5)
+const defaultOgImage = `${requestURL.origin}/og-default.svg`
+
+// Extract display values with fallbacks
+const title = data.value?.portfolio.title || data.value?.user?.name || 'Portfolio'
+const rawDescription = data.value?.user?.bio || data.value?.portfolio.description || ''
+// Truncate description for social platforms (recommended max ~155 chars)
+const description = rawDescription.length > 155
+  ? rawDescription.substring(0, 152) + '...'
+  : rawDescription
+const image = data.value?.user?.avatarUrl || defaultOgImage
+
+// SEO meta tags with OpenGraph and Twitter Card (Story 5.11)
 useSeoMeta({
-  title: data.value?.portfolio.title || 'Portfolio',
-  description: data.value?.user?.bio || data.value?.portfolio.description || ''
+  // Basic SEO
+  title,
+  description,
+
+  // OpenGraph (AC #1, #3)
+  ogTitle: title,
+  ogDescription: description,
+  ogImage: image,
+  ogUrl: fullUrl,
+  ogType: 'profile',
+  ogSiteName: 'Portfolio Hub',
+  ogLocale: 'ru_RU',
+
+  // Twitter Card (AC #2, #4)
+  twitterCard: 'summary',
+  twitterTitle: title,
+  twitterDescription: description,
+  twitterImage: image
+})
+
+// Canonical URL
+useHead({
+  link: [
+    { rel: 'canonical', href: fullUrl }
+  ]
 })
 </script>
 
