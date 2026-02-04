@@ -28,7 +28,9 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/': { ssr: true },
-    '/dashboard/**': { ssr: true }
+    '/dashboard/**': { ssr: true },
+    // Public portfolio pages with SWR caching (1 hour)
+    '/p/**': { ssr: true, swr: 3600 }
   },
 
   compatibilityDate: '2025-01-15',

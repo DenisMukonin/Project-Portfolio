@@ -202,7 +202,7 @@ async function handleUnpublish() {
 }
 
 function copyPublicUrl() {
-  const url = `${window.location.origin}/${portfolio.value?.slug}`
+  const url = `${window.location.origin}/p/${portfolio.value?.slug}`
   navigator.clipboard.writeText(url)
   toast.add({
     title: 'Скопировано!',
@@ -435,11 +435,11 @@ useSeoMeta({
                   <div class="flex items-center gap-2 text-sm">
                     <span class="text-gray-500 dark:text-gray-400">Публичный URL:</span>
                     <a
-                      :href="`/${portfolio.slug}`"
+                      :href="`/p/${portfolio.slug}`"
                       target="_blank"
                       class="text-primary-600 dark:text-primary-400 hover:underline truncate"
                     >
-                      {{ portfolio.slug }}
+                      /p/{{ portfolio.slug }}
                     </a>
                     <UButton
                       icon="i-lucide-copy"
@@ -454,7 +454,7 @@ useSeoMeta({
                       size="xs"
                       variant="ghost"
                       color="neutral"
-                      :to="`/${portfolio.slug}`"
+                      :to="`/p/${portfolio.slug}`"
                       target="_blank"
                       aria-label="Открыть в новой вкладке"
                     />
