@@ -57,6 +57,21 @@ useHead({
     { rel: 'canonical', href: fullUrl }
   ]
 })
+
+// Track portfolio view (Story 6.1 - Fire and forget, non-blocking)
+onMounted(() => {
+  if (data.value?.portfolio?.id) {
+    $fetch('/api/analytics/track', {
+      method: 'POST',
+      body: {
+        portfolioId: data.value.portfolio.id,
+        referrer: document.referrer || null
+      }
+    }).catch(() => {
+      // Silently ignore errors - analytics should never break UX (AC #3)
+    })
+  }
+})
 </script>
 
 <template>
