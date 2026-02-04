@@ -214,7 +214,7 @@ function formatDate(date: string | null): string {
           :href="user.socialLinks.github"
           target="_blank"
           rel="noopener noreferrer"
-          class="w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+          class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
           :class="avatarStyles"
           aria-label="GitHub"
         >
@@ -229,7 +229,7 @@ function formatDate(date: string | null): string {
           :href="user.socialLinks.linkedin"
           target="_blank"
           rel="noopener noreferrer"
-          class="w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+          class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
           :class="avatarStyles"
           aria-label="LinkedIn"
         >
@@ -244,7 +244,7 @@ function formatDate(date: string | null): string {
           :href="user.socialLinks.twitter"
           target="_blank"
           rel="noopener noreferrer"
-          class="w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+          class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
           :class="avatarStyles"
           aria-label="Twitter"
         >
@@ -259,7 +259,7 @@ function formatDate(date: string | null): string {
           :href="user.socialLinks.website"
           target="_blank"
           rel="noopener noreferrer"
-          class="w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+          class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
           :class="avatarStyles"
           aria-label="Website"
         >
@@ -288,12 +288,12 @@ function formatDate(date: string | null): string {
         <div
           v-for="project in projects"
           :key="project.id"
-          class="p-4 rounded-lg border"
+          class="p-4 rounded-lg border overflow-hidden"
           :class="templateStyles.border"
         >
-          <div class="flex items-start justify-between mb-2">
+          <div class="flex items-start justify-between mb-2 gap-2">
             <h3
-              class="font-semibold"
+              class="font-semibold break-words min-w-0"
               :class="templateStyles.text"
             >
               {{ project.name }}
@@ -312,7 +312,7 @@ function formatDate(date: string | null): string {
           </div>
           <p
             v-if="project.description"
-            class="text-sm mb-3"
+            class="text-sm mb-3 break-words"
             :class="templateStyles.accent"
           >
             {{ project.description }}
@@ -330,7 +330,7 @@ function formatDate(date: string | null): string {
               :href="project.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-sm hover:underline"
+              class="text-sm hover:underline py-2"
               :class="templateStyles.accent"
             >
               Открыть →
@@ -390,7 +390,7 @@ function formatDate(date: string | null): string {
             </p>
             <p
               v-if="exp.description"
-              class="text-sm mt-2 whitespace-pre-line"
+              class="text-sm mt-2 whitespace-pre-line break-words"
               :class="templateStyles.accent"
             >
               {{ exp.description }}
@@ -450,7 +450,7 @@ function formatDate(date: string | null): string {
             </p>
             <p
               v-if="edu.description"
-              class="text-sm mt-2 whitespace-pre-line"
+              class="text-sm mt-2 whitespace-pre-line break-words"
               :class="templateStyles.accent"
             >
               {{ edu.description }}
