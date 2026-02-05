@@ -164,318 +164,349 @@ function formatDate(date: string | null): string {
     class="w-full min-h-screen"
     :class="templateStyles.bg"
   >
-    <!-- Hero Section -->
-    <div class="flex flex-col items-center justify-center p-8 md:p-12 lg:p-16 text-center">
-      <!-- Avatar (Story 6.3 - Optimized with NuxtImg, eager for LCP) -->
-      <div
-        class="w-24 h-24 md:w-32 md:h-32 rounded-full mb-6 flex items-center justify-center overflow-hidden"
-        :class="avatarStyles"
-      >
-        <NuxtImg
-          v-if="user?.avatarUrl && !avatarError"
-          :src="user.avatarUrl"
-          :alt="displayTitle"
-          width="128"
-          height="128"
-          loading="eager"
-          fetchpriority="high"
-          format="webp"
-          quality="80"
-          class="w-full h-full object-cover"
-          @error="handleAvatarError"
-        />
-        <UIcon
-          v-else
-          name="i-lucide-user"
-          class="w-12 h-12 md:w-16 md:h-16"
-          :class="avatarIconStyles"
-        />
-      </div>
-
-      <!-- Name -->
-      <h1
-        class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3"
-        :class="templateStyles.text"
-      >
-        {{ displayTitle }}
-      </h1>
-
-      <!-- Professional Title -->
-      <p
-        v-if="displaySubtitle"
-        class="text-xl md:text-2xl mb-6"
-        :class="templateStyles.accent"
-      >
-        {{ displaySubtitle }}
-      </p>
-
-      <!-- Bio -->
-      <p
-        v-if="displayBio"
-        class="max-w-2xl text-base md:text-lg leading-relaxed whitespace-pre-line"
-        :class="templateStyles.accent"
-      >
-        {{ displayBio }}
-      </p>
-
-      <!-- Social Links -->
-      <div
-        v-if="hasSocialLinks"
-        class="flex gap-4 mt-8"
-      >
-        <a
-          v-if="user?.socialLinks?.github"
-          :href="user.socialLinks.github"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
-          :class="avatarStyles"
-          aria-label="GitHub"
-        >
-          <UIcon
-            name="i-simple-icons-github"
-            class="w-5 h-5"
-            :class="avatarIconStyles"
-          />
-        </a>
-        <a
-          v-if="user?.socialLinks?.linkedin"
-          :href="user.socialLinks.linkedin"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
-          :class="avatarStyles"
-          aria-label="LinkedIn"
-        >
-          <UIcon
-            name="i-simple-icons-linkedin"
-            class="w-5 h-5"
-            :class="avatarIconStyles"
-          />
-        </a>
-        <a
-          v-if="user?.socialLinks?.twitter"
-          :href="user.socialLinks.twitter"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
-          :class="avatarStyles"
-          aria-label="Twitter"
-        >
-          <UIcon
-            name="i-simple-icons-x"
-            class="w-5 h-5"
-            :class="avatarIconStyles"
-          />
-        </a>
-        <a
-          v-if="user?.socialLinks?.website"
-          :href="user.socialLinks.website"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
-          :class="avatarStyles"
-          aria-label="Website"
-        >
-          <UIcon
-            name="i-lucide-globe"
-            class="w-5 h-5"
-            :class="avatarIconStyles"
-          />
-        </a>
-      </div>
-    </div>
-
-    <!-- Projects Section (AC #5 - hide if empty) -->
-    <div
-      v-if="projects.length > 0"
-      class="mx-6 md:mx-12 lg:mx-24 mb-8 p-6 rounded-lg border"
-      :class="[templateStyles.sectionBg, templateStyles.border]"
+    <!-- Skip to main content link (Story 6.4 - Accessibility) -->
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-gray-900 focus:text-white focus:rounded focus:outline-none focus:ring-2 focus:ring-white focus:shadow-lg"
     >
-      <h2
-        class="text-xl md:text-2xl font-semibold mb-6"
-        :class="templateStyles.text"
-      >
-        Проекты
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      Перейти к содержимому
+    </a>
+
+    <!-- Main content landmark (Story 6.4 - Accessibility) -->
+    <main id="main-content">
+      <!-- Hero Section -->
+      <header class="flex flex-col items-center justify-center p-8 md:p-12 lg:p-16 text-center">
+        <!-- Avatar (Story 6.3 - Optimized with NuxtImg, eager for LCP) -->
         <div
-          v-for="project in projects"
-          :key="project.id"
-          class="p-4 rounded-lg border overflow-hidden"
-          :class="templateStyles.border"
+          class="w-24 h-24 md:w-32 md:h-32 rounded-full mb-6 flex items-center justify-center overflow-hidden"
+          :class="avatarStyles"
         >
-          <div class="flex items-start justify-between mb-2 gap-2">
-            <h3
-              class="font-semibold break-words min-w-0"
-              :class="templateStyles.text"
-            >
-              {{ project.name }}
-            </h3>
-            <div
-              v-if="project.stars && project.stars > 0"
-              class="flex items-center gap-1 text-sm"
+          <NuxtImg
+            v-if="user?.avatarUrl && !avatarError"
+            :src="user.avatarUrl"
+            :alt="displayTitle"
+            width="128"
+            height="128"
+            loading="eager"
+            fetchpriority="high"
+            format="webp"
+            quality="80"
+            class="w-full h-full object-cover"
+            @error="handleAvatarError"
+          />
+          <UIcon
+            v-else
+            name="i-lucide-user"
+            class="w-12 h-12 md:w-16 md:h-16"
+            :class="avatarIconStyles"
+            aria-hidden="true"
+          />
+        </div>
+
+        <!-- Name -->
+        <h1
+          class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3"
+          :class="templateStyles.text"
+        >
+          {{ displayTitle }}
+        </h1>
+
+        <!-- Professional Title -->
+        <p
+          v-if="displaySubtitle"
+          class="text-xl md:text-2xl mb-6"
+          :class="templateStyles.accent"
+        >
+          {{ displaySubtitle }}
+        </p>
+
+        <!-- Bio -->
+        <p
+          v-if="displayBio"
+          class="max-w-2xl text-base md:text-lg leading-relaxed whitespace-pre-line"
+          :class="templateStyles.accent"
+        >
+          {{ displayBio }}
+        </p>
+
+        <!-- Social Links (Story 6.4 - wrapped in nav landmark) -->
+        <nav
+          v-if="hasSocialLinks"
+          aria-label="Социальные сети"
+          class="flex gap-4 mt-8"
+        >
+          <a
+            v-if="user?.socialLinks?.github"
+            :href="user.socialLinks.github"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            :class="avatarStyles"
+            aria-label="GitHub профиль"
+          >
+            <UIcon
+              name="i-simple-icons-github"
+              class="w-5 h-5"
+              :class="avatarIconStyles"
+              aria-hidden="true"
+            />
+          </a>
+          <a
+            v-if="user?.socialLinks?.linkedin"
+            :href="user.socialLinks.linkedin"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            :class="avatarStyles"
+            aria-label="LinkedIn профиль"
+          >
+            <UIcon
+              name="i-simple-icons-linkedin"
+              class="w-5 h-5"
+              :class="avatarIconStyles"
+              aria-hidden="true"
+            />
+          </a>
+          <a
+            v-if="user?.socialLinks?.twitter"
+            :href="user.socialLinks.twitter"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            :class="avatarStyles"
+            aria-label="Twitter профиль"
+          >
+            <UIcon
+              name="i-simple-icons-x"
+              class="w-5 h-5"
+              :class="avatarIconStyles"
+              aria-hidden="true"
+            />
+          </a>
+          <a
+            v-if="user?.socialLinks?.website"
+            :href="user.socialLinks.website"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-11 h-11 rounded-full flex items-center justify-center transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            :class="avatarStyles"
+            aria-label="Персональный сайт"
+          >
+            <UIcon
+              name="i-lucide-globe"
+              class="w-5 h-5"
+              :class="avatarIconStyles"
+              aria-hidden="true"
+            />
+          </a>
+        </nav>
+      </header>
+
+      <!-- Projects Section (Story 6.4 - semantic section with aria-labelledby) -->
+      <section
+        v-if="projects.length > 0"
+        aria-labelledby="projects-heading"
+        class="mx-6 md:mx-12 lg:mx-24 mb-8 p-6 rounded-lg border"
+        :class="[templateStyles.sectionBg, templateStyles.border]"
+      >
+        <h2
+          id="projects-heading"
+          class="text-xl md:text-2xl font-semibold mb-6"
+          :class="templateStyles.text"
+        >
+          Проекты
+        </h2>
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 list-none p-0 m-0">
+          <li
+            v-for="project in projects"
+            :key="project.id"
+            class="p-4 rounded-lg border overflow-hidden"
+            :class="templateStyles.border"
+          >
+            <div class="flex items-start justify-between mb-2 gap-2">
+              <h3
+                class="font-semibold break-words min-w-0"
+                :class="templateStyles.text"
+              >
+                {{ project.name }}
+              </h3>
+              <div
+                v-if="project.stars && project.stars > 0"
+                class="flex items-center gap-1 text-sm"
+                :class="templateStyles.accent"
+                role="img"
+                :aria-label="`${project.stars} звёзд на GitHub`"
+              >
+                <UIcon
+                  name="i-lucide-star"
+                  class="w-4 h-4"
+                  aria-hidden="true"
+                />
+                <span aria-hidden="true">{{ project.stars }}</span>
+              </div>
+            </div>
+            <p
+              v-if="project.description"
+              class="text-sm mb-3 break-words"
               :class="templateStyles.accent"
+            >
+              {{ project.description }}
+            </p>
+            <div class="flex items-center gap-3">
+              <span
+                v-if="project.language"
+                class="text-xs px-2 py-1 rounded"
+                :class="templateStyles.sectionBg"
+              >
+                {{ project.language }}
+              </span>
+              <a
+                v-if="project.url"
+                :href="project.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-sm hover:underline py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                :class="templateStyles.accent"
+                :aria-label="`Открыть проект ${project.name}`"
+              >
+                Открыть →
+              </a>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Experience Section (Story 6.4 - semantic section with aria-labelledby) -->
+      <section
+        v-if="experiences.length > 0"
+        aria-labelledby="experience-heading"
+        class="mx-6 md:mx-12 lg:mx-24 mb-8 p-6 rounded-lg border"
+        :class="[templateStyles.sectionBg, templateStyles.border]"
+      >
+        <h2
+          id="experience-heading"
+          class="text-xl md:text-2xl font-semibold mb-6"
+          :class="templateStyles.text"
+        >
+          Опыт работы
+        </h2>
+        <ul class="space-y-6 list-none p-0 m-0">
+          <li
+            v-for="exp in experiences"
+            :key="exp.id"
+            class="flex gap-4"
+          >
+            <div
+              class="w-12 h-12 rounded-lg flex-shrink-0 flex items-center justify-center"
+              :class="templateStyles.sectionBg"
+              aria-hidden="true"
             >
               <UIcon
-                name="i-lucide-star"
-                class="w-4 h-4"
+                name="i-lucide-briefcase"
+                class="w-6 h-6"
+                :class="templateStyles.accent"
+                aria-hidden="true"
               />
-              {{ project.stars }}
             </div>
-          </div>
-          <p
-            v-if="project.description"
-            class="text-sm mb-3 break-words"
-            :class="templateStyles.accent"
+            <div class="flex-1">
+              <h3
+                class="font-semibold"
+                :class="templateStyles.text"
+              >
+                {{ exp.title }}
+              </h3>
+              <p
+                class="text-sm"
+                :class="templateStyles.accent"
+              >
+                {{ exp.company }}
+                <span v-if="exp.location"> • {{ exp.location }}</span>
+              </p>
+              <p
+                class="text-sm mt-1"
+                :class="templateStyles.accent"
+              >
+                {{ formatDate(exp.startDate) }} — {{ exp.isCurrent ? 'Настоящее время' : formatDate(exp.endDate) }}
+              </p>
+              <p
+                v-if="exp.description"
+                class="text-sm mt-2 whitespace-pre-line break-words"
+                :class="templateStyles.accent"
+              >
+                {{ exp.description }}
+              </p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Education Section (Story 6.4 - semantic section with aria-labelledby) -->
+      <section
+        v-if="education.length > 0"
+        aria-labelledby="education-heading"
+        class="mx-6 md:mx-12 lg:mx-24 mb-8 p-6 rounded-lg border"
+        :class="[templateStyles.sectionBg, templateStyles.border]"
+      >
+        <h2
+          id="education-heading"
+          class="text-xl md:text-2xl font-semibold mb-6"
+          :class="templateStyles.text"
+        >
+          Образование
+        </h2>
+        <ul class="space-y-6 list-none p-0 m-0">
+          <li
+            v-for="edu in education"
+            :key="edu.id"
+            class="flex gap-4"
           >
-            {{ project.description }}
-          </p>
-          <div class="flex items-center gap-3">
-            <span
-              v-if="project.language"
-              class="text-xs px-2 py-1 rounded"
+            <div
+              class="w-12 h-12 rounded-lg flex-shrink-0 flex items-center justify-center"
               :class="templateStyles.sectionBg"
+              aria-hidden="true"
             >
-              {{ project.language }}
-            </span>
-            <a
-              v-if="project.url"
-              :href="project.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-sm hover:underline py-2"
-              :class="templateStyles.accent"
-            >
-              Открыть →
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Experience Section (AC #5 - hide if empty) -->
-    <div
-      v-if="experiences.length > 0"
-      class="mx-6 md:mx-12 lg:mx-24 mb-8 p-6 rounded-lg border"
-      :class="[templateStyles.sectionBg, templateStyles.border]"
-    >
-      <h2
-        class="text-xl md:text-2xl font-semibold mb-6"
-        :class="templateStyles.text"
-      >
-        Опыт работы
-      </h2>
-      <div class="space-y-6">
-        <div
-          v-for="exp in experiences"
-          :key="exp.id"
-          class="flex gap-4"
-        >
-          <div
-            class="w-12 h-12 rounded-lg flex-shrink-0 flex items-center justify-center"
-            :class="templateStyles.sectionBg"
-          >
-            <UIcon
-              name="i-lucide-briefcase"
-              class="w-6 h-6"
-              :class="templateStyles.accent"
-            />
-          </div>
-          <div class="flex-1">
-            <h3
-              class="font-semibold"
-              :class="templateStyles.text"
-            >
-              {{ exp.title }}
-            </h3>
-            <p
-              class="text-sm"
-              :class="templateStyles.accent"
-            >
-              {{ exp.company }}
-              <span v-if="exp.location"> • {{ exp.location }}</span>
-            </p>
-            <p
-              class="text-sm mt-1"
-              :class="templateStyles.accent"
-            >
-              {{ formatDate(exp.startDate) }} — {{ exp.isCurrent ? 'Настоящее время' : formatDate(exp.endDate) }}
-            </p>
-            <p
-              v-if="exp.description"
-              class="text-sm mt-2 whitespace-pre-line break-words"
-              :class="templateStyles.accent"
-            >
-              {{ exp.description }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Education Section (AC #5 - hide if empty) -->
-    <div
-      v-if="education.length > 0"
-      class="mx-6 md:mx-12 lg:mx-24 mb-8 p-6 rounded-lg border"
-      :class="[templateStyles.sectionBg, templateStyles.border]"
-    >
-      <h2
-        class="text-xl md:text-2xl font-semibold mb-6"
-        :class="templateStyles.text"
-      >
-        Образование
-      </h2>
-      <div class="space-y-6">
-        <div
-          v-for="edu in education"
-          :key="edu.id"
-          class="flex gap-4"
-        >
-          <div
-            class="w-12 h-12 rounded-lg flex-shrink-0 flex items-center justify-center"
-            :class="templateStyles.sectionBg"
-          >
-            <UIcon
-              name="i-lucide-graduation-cap"
-              class="w-6 h-6"
-              :class="templateStyles.accent"
-            />
-          </div>
-          <div class="flex-1">
-            <h3
-              class="font-semibold"
-              :class="templateStyles.text"
-            >
-              {{ edu.school }}
-            </h3>
-            <p
-              class="text-sm"
-              :class="templateStyles.accent"
-            >
-              {{ edu.degree }}
-              <span v-if="edu.fieldOfStudy">, {{ edu.fieldOfStudy }}</span>
-            </p>
-            <p
-              class="text-sm mt-1"
-              :class="templateStyles.accent"
-            >
-              {{ formatDate(edu.startDate) }} — {{ edu.isCurrent ? 'Настоящее время' : formatDate(edu.endDate) }}
-            </p>
-            <p
-              v-if="edu.description"
-              class="text-sm mt-2 whitespace-pre-line break-words"
-              :class="templateStyles.accent"
-            >
-              {{ edu.description }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+              <UIcon
+                name="i-lucide-graduation-cap"
+                class="w-6 h-6"
+                :class="templateStyles.accent"
+                aria-hidden="true"
+              />
+            </div>
+            <div class="flex-1">
+              <h3
+                class="font-semibold"
+                :class="templateStyles.text"
+              >
+                {{ edu.school }}
+              </h3>
+              <p
+                class="text-sm"
+                :class="templateStyles.accent"
+              >
+                {{ edu.degree }}
+                <span v-if="edu.fieldOfStudy">, {{ edu.fieldOfStudy }}</span>
+              </p>
+              <p
+                class="text-sm mt-1"
+                :class="templateStyles.accent"
+              >
+                {{ formatDate(edu.startDate) }} — {{ edu.isCurrent ? 'Настоящее время' : formatDate(edu.endDate) }}
+              </p>
+              <p
+                v-if="edu.description"
+                class="text-sm mt-2 whitespace-pre-line break-words"
+                :class="templateStyles.accent"
+              >
+                {{ edu.description }}
+              </p>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </main>
 
     <!-- Footer -->
-    <div
+    <footer
       class="p-6 text-center border-t"
       :class="templateStyles.border"
     >
@@ -485,6 +516,6 @@ function formatDate(date: string | null): string {
       >
         Создано с Portfolio Hub
       </p>
-    </div>
+    </footer>
   </div>
 </template>

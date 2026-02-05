@@ -12,8 +12,12 @@ export default defineNuxtConfig({
   },
 
   // Preconnect hints for faster external resource loading (Story 6.3)
+  // HTML lang attribute for accessibility (Story 6.4)
   app: {
     head: {
+      htmlAttrs: {
+        lang: 'ru'
+      },
       link: [
         { rel: 'preconnect', href: 'https://avatars.githubusercontent.com' },
         { rel: 'dns-prefetch', href: 'https://avatars.githubusercontent.com' }
