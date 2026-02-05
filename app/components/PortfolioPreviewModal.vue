@@ -2,6 +2,38 @@
 import type { TemplateDefinition } from '~~/shared/templates'
 import type { SocialLinks } from '~~/shared/types/social-links'
 
+// Serialized types for preview data
+interface PreviewProject {
+  id: string
+  name: string
+  description: string | null
+  url: string | null
+  language: string | null
+  stars: number | null
+}
+
+interface PreviewExperience {
+  id: string
+  title: string
+  company: string
+  location: string | null
+  startDate: string
+  endDate: string | null
+  isCurrent: boolean
+  description: string | null
+}
+
+interface PreviewEducation {
+  id: string
+  school: string
+  degree: string
+  fieldOfStudy: string | null
+  startDate: string
+  endDate: string | null
+  isCurrent: boolean
+  description: string | null
+}
+
 const props = defineProps<{
   open: boolean
   template: TemplateDefinition | null
@@ -14,6 +46,10 @@ const props = defineProps<{
   userBio?: string | null
   userSocialLinks?: SocialLinks | null
   userAvatarUrl?: string | null
+  // Optional data for preview
+  projects?: PreviewProject[]
+  experiences?: PreviewExperience[]
+  education?: PreviewEducation[]
 }>()
 
 const emit = defineEmits<{
@@ -50,7 +86,10 @@ watch(() => props.open, (isOpen) => {
     fullscreen
     @update:open="emit('update:open', $event)"
   >
-    <template #header>
+    <template
+      v-if="open"
+      #header
+    >
       <div class="flex items-center justify-between w-full">
         <div class="flex items-center gap-4">
           <h3 class="text-lg font-semibold">
@@ -90,6 +129,7 @@ watch(() => props.open, (isOpen) => {
     </template>
 
     <div
+      v-if="open"
       id="portfolio-preview-content"
       class="p-6 flex flex-col items-center overflow-auto bg-gray-100 dark:bg-gray-950 min-h-full"
       aria-describedby="preview-description"
@@ -104,16 +144,18 @@ watch(() => props.open, (isOpen) => {
           :user-bio="userBio"
           :user-social-links="userSocialLinks"
           :user-avatar-url="userAvatarUrl"
+          :projects="projects"
+          :experiences="experiences"
+          :education="education"
         />
-        <!-- Loading skeleton when template is not yet available -->
+        <!-- Fallback message when template is not available -->
         <div
           v-else
-          class="w-full min-h-[400px] rounded-lg bg-gray-200 dark:bg-gray-800 animate-pulse flex items-center justify-center"
+          class="w-full min-h-[400px] rounded-lg bg-gray-200 dark:bg-gray-800 flex items-center justify-center"
         >
-          <UIcon
-            name="i-lucide-loader-2"
-            class="w-8 h-8 animate-spin text-gray-400"
-          />
+          <p class="text-gray-500 dark:text-gray-400">
+            Шаблон не найден. Пожалуйста, выберите шаблон.
+          </p>
         </div>
       </div>
 
@@ -133,7 +175,10 @@ watch(() => props.open, (isOpen) => {
       </div>
     </div>
 
-    <template #footer>
+    <template
+      v-if="open"
+      #footer
+    >
       <div class="flex justify-end">
         <UButton
           label="Закрыть"

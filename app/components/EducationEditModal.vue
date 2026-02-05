@@ -127,12 +127,19 @@ function handleClose() {
   errors.degree = ''
   errors.startDate = ''
 }
+
+// Handle modal state changes - only close when modal is being closed
+function onModalUpdate(value: boolean) {
+  if (!value) {
+    handleClose()
+  }
+}
 </script>
 
 <template>
   <UModal
     :open="open"
-    @update:open="handleClose"
+    @update:open="onModalUpdate"
   >
     <template #header>
       <h3 class="text-lg font-semibold">

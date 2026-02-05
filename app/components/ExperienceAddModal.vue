@@ -121,12 +121,20 @@ function handleClose() {
   emit('update:open', false)
   resetForm()
 }
+
+// Handle modal state changes - only reset form when modal is being closed
+function onModalUpdate(value: boolean) {
+  if (!value) {
+    // Modal is closing - reset the form
+    handleClose()
+  }
+}
 </script>
 
 <template>
   <UModal
     :open="open"
-    @update:open="handleClose"
+    @update:open="onModalUpdate"
   >
     <template #header>
       <h3 class="text-lg font-semibold">

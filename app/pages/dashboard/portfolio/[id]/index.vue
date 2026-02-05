@@ -25,6 +25,50 @@ if (analyticsError.value) {
   console.warn('Failed to load analytics:', analyticsError.value.message)
 }
 
+// Fetch portfolio data for preview (projects, experiences, education)
+// These are loaded lazily and don't block the page render
+interface PreviewProject {
+  id: string
+  name: string
+  description: string | null
+  url: string | null
+  language: string | null
+  stars: number | null
+}
+interface PreviewExperience {
+  id: string
+  title: string
+  company: string
+  location: string | null
+  startDate: string
+  endDate: string | null
+  isCurrent: boolean
+  description: string | null
+}
+interface PreviewEducation {
+  id: string
+  school: string
+  degree: string
+  fieldOfStudy: string | null
+  startDate: string
+  endDate: string | null
+  isCurrent: boolean
+  description: string | null
+}
+
+const { data: previewProjects } = await useFetch<PreviewProject[]>(
+  `/api/portfolios/${portfolioId}/projects`,
+  { default: () => [] }
+)
+const { data: previewExperiences } = await useFetch<PreviewExperience[]>(
+  `/api/portfolios/${portfolioId}/experiences`,
+  { default: () => [] }
+)
+const { data: previewEducation } = await useFetch<PreviewEducation[]>(
+  `/api/portfolios/${portfolioId}/education`,
+  { default: () => [] }
+)
+
 if (error.value) {
   throw createError({
     statusCode: error.value.statusCode || 404,
@@ -95,8 +139,12 @@ const portfolioPreviewData = computed(() => ({
 }))
 
 // Get current template definition for portfolio preview
+// Fallback to 'minimal' template if current template is not found
 const currentTemplateDefinition = computed(() => {
-  return getTemplateById(portfolio.value?.template ?? 'minimal') ?? null
+  const templateId = portfolio.value?.template ?? 'minimal'
+  const template = getTemplateById(templateId)
+  // If template not found, fallback to minimal (should always exist)
+  return template ?? getTemplateById('minimal') ?? null
 })
 
 const templateDisplayName = computed(() => {
@@ -277,7 +325,16 @@ async function handleTemplateSelect(template: TemplateDefinition) {
 
 function handleTemplatePreview(template: TemplateDefinition) {
   previewTemplate.value = template
+  // Close template selector modal before opening preview modal
+  // This prevents two modals from being open simultaneously
+  showTemplateModal.value = false
   showPreview.value = true
+}
+
+function handlePreviewClose() {
+  showPreview.value = false
+  // Return to template selector after closing preview
+  showTemplateModal.value = true
 }
 
 async function handlePreviewSelect(template: TemplateDefinition) {
@@ -556,20 +613,30 @@ useSeoMeta({
       </div>
     </div>
 
+    <!-- Delete Confirmation Modal - content wrapped in v-if to prevent rendering when closed -->
     <UModal v-model:open="showDeleteDialog">
-      <template #header>
+      <template
+        v-if="showDeleteDialog"
+        #header
+      >
         <h3 class="text-lg font-semibold text-red-600 dark:text-red-400">
           Удалить портфолио?
         </h3>
       </template>
 
-      <div class="p-4">
+      <div
+        v-if="showDeleteDialog"
+        class="p-4"
+      >
         <p class="text-gray-600 dark:text-gray-400">
           Вы уверены, что хотите удалить "{{ portfolio?.title }}"? Это действие необратимо.
         </p>
       </div>
 
-      <template #footer>
+      <template
+        v-if="showDeleteDialog"
+        #footer
+      >
         <div class="flex justify-end gap-2">
           <UButton
             label="Отмена"
@@ -588,14 +655,21 @@ useSeoMeta({
       </template>
     </UModal>
 
+    <!-- Template Selector Modal - content wrapped in v-if to prevent rendering when closed -->
     <UModal v-model:open="showTemplateModal">
-      <template #header>
+      <template
+        v-if="showTemplateModal"
+        #header
+      >
         <h3 class="text-lg font-semibold">
           Выберите шаблон
         </h3>
       </template>
 
-      <div class="p-4">
+      <div
+        v-if="showTemplateModal"
+        class="p-4"
+      >
         <TemplateSelector
           :current-template="portfolio?.template ?? 'minimal'"
           :loading="isChangingTemplate"
@@ -604,7 +678,10 @@ useSeoMeta({
         />
       </div>
 
-      <template #footer>
+      <template
+        v-if="showTemplateModal"
+        #footer
+      >
         <div class="flex justify-end">
           <UButton
             label="Отмена"
@@ -626,7 +703,7 @@ useSeoMeta({
       }"
       :loading="isChangingTemplate"
       @select="handlePreviewSelect"
-      @close="showPreview = false"
+      @close="handlePreviewClose"
     />
 
     <!-- Portfolio Preview Modal (Story 2.9) -->
@@ -638,6 +715,9 @@ useSeoMeta({
       :user-bio="user?.bio"
       :user-social-links="user?.socialLinks"
       :user-avatar-url="user?.avatarUrl"
+      :projects="previewProjects ?? []"
+      :experiences="previewExperiences ?? []"
+      :education="previewEducation ?? []"
       @close="showPortfolioPreview = false"
     />
   </div>

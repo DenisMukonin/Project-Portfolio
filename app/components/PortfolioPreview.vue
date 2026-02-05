@@ -2,6 +2,38 @@
 import type { TemplateDefinition } from '~~/shared/templates'
 import type { SocialLinks } from '~~/shared/types/social-links'
 
+// Serialized types for preview data (matching PublicPortfolio)
+interface PreviewProject {
+  id: string
+  name: string
+  description: string | null
+  url: string | null
+  language: string | null
+  stars: number | null
+}
+
+interface PreviewExperience {
+  id: string
+  title: string
+  company: string
+  location: string | null
+  startDate: string
+  endDate: string | null
+  isCurrent: boolean
+  description: string | null
+}
+
+interface PreviewEducation {
+  id: string
+  school: string
+  degree: string
+  fieldOfStudy: string | null
+  startDate: string
+  endDate: string | null
+  isCurrent: boolean
+  description: string | null
+}
+
 const props = defineProps<{
   template: TemplateDefinition
   portfolioData: {
@@ -13,11 +45,26 @@ const props = defineProps<{
   userBio?: string | null
   userSocialLinks?: SocialLinks | null
   userAvatarUrl?: string | null
+  // Optional data props - show real data if provided, placeholders otherwise
+  projects?: PreviewProject[]
+  experiences?: PreviewExperience[]
+  education?: PreviewEducation[]
 }>()
 
-// Number of placeholder items to show in future sections (Projects, Experience)
-// Kept small (2) to indicate content will appear without cluttering the preview
+// Number of placeholder items to show when no data is provided
 const PLACEHOLDER_ITEMS_COUNT = 2
+// Limit items shown in preview to avoid cluttering
+const MAX_PREVIEW_ITEMS = 3
+
+// Check if we have real data to display
+const hasProjects = computed(() => props.projects && props.projects.length > 0)
+const hasExperiences = computed(() => props.experiences && props.experiences.length > 0)
+const hasEducation = computed(() => props.education && props.education.length > 0)
+
+// Get limited items for preview
+const previewProjects = computed(() => props.projects?.slice(0, MAX_PREVIEW_ITEMS) ?? [])
+const previewExperiences = computed(() => props.experiences?.slice(0, MAX_PREVIEW_ITEMS) ?? [])
+const previewEducation = computed(() => props.education?.slice(0, MAX_PREVIEW_ITEMS) ?? [])
 
 // Fallback data when portfolio fields are empty
 const displayTitle = computed(() => props.portfolioData.title || 'Ваше имя')
@@ -25,6 +72,15 @@ const displaySubtitle = computed(() => props.userTitle || props.portfolioData.su
 const displayDescription = computed(() =>
   props.userBio || props.portfolioData.description || 'Здесь будет ваше описание. Расскажите о себе и своих навыках.'
 )
+
+// Date formatting helper
+function formatDate(date: string | null): string {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('ru-RU', {
+    year: 'numeric',
+    month: 'short'
+  })
+}
 
 // Template-specific styles - extended for full portfolio view
 // NOTE: 'tech' and 'creative' templates intentionally ignore system dark mode preference
@@ -231,7 +287,7 @@ const hasSocialLinks = computed(() =>
       </div>
     </div>
 
-    <!-- Projects Section Placeholder (Future Epic 4) -->
+    <!-- Projects Section -->
     <div
       class="mx-6 md:mx-12 mb-8 p-6 rounded-lg border"
       :class="[templateStyles.sectionBg, templateStyles.border]"
@@ -242,36 +298,95 @@ const hasSocialLinks = computed(() =>
       >
         Проекты
       </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div
-          v-for="n in PLACEHOLDER_ITEMS_COUNT"
-          :key="n"
-          class="p-4 rounded-lg border opacity-50"
-          :class="templateStyles.border"
-        >
+
+      <!-- Real projects data -->
+      <template v-if="hasProjects">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div
-            class="h-4 w-3/4 rounded mb-2"
-            :class="templateStyles.sectionBg"
-          />
-          <div
-            class="h-3 w-full rounded mb-1"
-            :class="templateStyles.sectionBg"
-          />
-          <div
-            class="h-3 w-2/3 rounded"
-            :class="templateStyles.sectionBg"
-          />
+            v-for="project in previewProjects"
+            :key="project.id"
+            class="p-4 rounded-lg border"
+            :class="templateStyles.border"
+          >
+            <div class="flex items-start justify-between mb-2 gap-2">
+              <h3
+                class="font-semibold"
+                :class="templateStyles.text"
+              >
+                {{ project.name }}
+              </h3>
+              <div
+                v-if="project.stars && project.stars > 0"
+                class="flex items-center gap-1 text-sm"
+                :class="templateStyles.accent"
+              >
+                <UIcon
+                  name="i-lucide-star"
+                  class="w-4 h-4"
+                />
+                {{ project.stars }}
+              </div>
+            </div>
+            <p
+              v-if="project.description"
+              class="text-sm mb-2 line-clamp-2"
+              :class="templateStyles.accent"
+            >
+              {{ project.description }}
+            </p>
+            <div class="flex items-center gap-2">
+              <span
+                v-if="project.language"
+                class="text-xs px-2 py-1 rounded"
+                :class="templateStyles.sectionBg"
+              >
+                {{ project.language }}
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
-      <p
-        class="text-sm mt-4 opacity-60"
-        :class="templateStyles.accent"
-      >
-        Проекты будут добавлены позже
-      </p>
+        <p
+          v-if="projects && projects.length > MAX_PREVIEW_ITEMS"
+          class="text-sm mt-4 opacity-60"
+          :class="templateStyles.accent"
+        >
+          И ещё {{ projects.length - MAX_PREVIEW_ITEMS }} проектов...
+        </p>
+      </template>
+
+      <!-- Placeholder when no projects -->
+      <template v-else>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            v-for="n in PLACEHOLDER_ITEMS_COUNT"
+            :key="n"
+            class="p-4 rounded-lg border opacity-50"
+            :class="templateStyles.border"
+          >
+            <div
+              class="h-4 w-3/4 rounded mb-2"
+              :class="templateStyles.sectionBg"
+            />
+            <div
+              class="h-3 w-full rounded mb-1"
+              :class="templateStyles.sectionBg"
+            />
+            <div
+              class="h-3 w-2/3 rounded"
+              :class="templateStyles.sectionBg"
+            />
+          </div>
+        </div>
+        <p
+          class="text-sm mt-4 opacity-60"
+          :class="templateStyles.accent"
+        >
+          Проекты будут добавлены позже
+        </p>
+      </template>
     </div>
 
-    <!-- Experience Section Placeholder (Future Epic 5) -->
+    <!-- Experience Section -->
     <div
       class="mx-6 md:mx-12 mb-8 p-6 rounded-lg border"
       :class="[templateStyles.sectionBg, templateStyles.border]"
@@ -282,37 +397,91 @@ const hasSocialLinks = computed(() =>
       >
         Опыт работы
       </h2>
-      <div class="space-y-4 opacity-50">
-        <div
-          v-for="n in PLACEHOLDER_ITEMS_COUNT"
-          :key="n"
-          class="flex gap-4"
-        >
+
+      <!-- Real experiences data -->
+      <template v-if="hasExperiences">
+        <div class="space-y-4">
           <div
-            class="w-12 h-12 rounded-lg flex-shrink-0"
-            :class="templateStyles.sectionBg"
-          />
-          <div class="flex-1">
+            v-for="exp in previewExperiences"
+            :key="exp.id"
+            class="flex gap-4"
+          >
             <div
-              class="h-4 w-1/2 rounded mb-2"
+              class="w-12 h-12 rounded-lg flex-shrink-0 flex items-center justify-center"
               :class="templateStyles.sectionBg"
-            />
-            <div
-              class="h-3 w-1/3 rounded"
-              :class="templateStyles.sectionBg"
-            />
+            >
+              <UIcon
+                name="i-lucide-briefcase"
+                class="w-6 h-6"
+                :class="templateStyles.accent"
+              />
+            </div>
+            <div class="flex-1">
+              <h3
+                class="font-semibold"
+                :class="templateStyles.text"
+              >
+                {{ exp.title }}
+              </h3>
+              <p
+                class="text-sm"
+                :class="templateStyles.accent"
+              >
+                {{ exp.company }}
+                <span v-if="exp.location"> • {{ exp.location }}</span>
+              </p>
+              <p
+                class="text-sm mt-1"
+                :class="templateStyles.accent"
+              >
+                {{ formatDate(exp.startDate) }} — {{ exp.isCurrent ? 'Настоящее время' : formatDate(exp.endDate) }}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-      <p
-        class="text-sm mt-4 opacity-60"
-        :class="templateStyles.accent"
-      >
-        Опыт работы будет добавлен позже
-      </p>
+        <p
+          v-if="experiences && experiences.length > MAX_PREVIEW_ITEMS"
+          class="text-sm mt-4 opacity-60"
+          :class="templateStyles.accent"
+        >
+          И ещё {{ experiences.length - MAX_PREVIEW_ITEMS }} записей...
+        </p>
+      </template>
+
+      <!-- Placeholder when no experiences -->
+      <template v-else>
+        <div class="space-y-4 opacity-50">
+          <div
+            v-for="n in PLACEHOLDER_ITEMS_COUNT"
+            :key="n"
+            class="flex gap-4"
+          >
+            <div
+              class="w-12 h-12 rounded-lg flex-shrink-0"
+              :class="templateStyles.sectionBg"
+            />
+            <div class="flex-1">
+              <div
+                class="h-4 w-1/2 rounded mb-2"
+                :class="templateStyles.sectionBg"
+              />
+              <div
+                class="h-3 w-1/3 rounded"
+                :class="templateStyles.sectionBg"
+              />
+            </div>
+          </div>
+        </div>
+        <p
+          class="text-sm mt-4 opacity-60"
+          :class="templateStyles.accent"
+        >
+          Опыт работы будет добавлен позже
+        </p>
+      </template>
     </div>
 
-    <!-- Education Section Placeholder (Future Epic 5) -->
+    <!-- Education Section -->
     <div
       class="mx-6 md:mx-12 mb-8 p-6 rounded-lg border"
       :class="[templateStyles.sectionBg, templateStyles.border]"
@@ -323,30 +492,84 @@ const hasSocialLinks = computed(() =>
       >
         Образование
       </h2>
-      <div class="space-y-4 opacity-50">
-        <div class="flex gap-4">
+
+      <!-- Real education data -->
+      <template v-if="hasEducation">
+        <div class="space-y-4">
           <div
-            class="w-12 h-12 rounded-lg flex-shrink-0"
-            :class="templateStyles.sectionBg"
-          />
-          <div class="flex-1">
+            v-for="edu in previewEducation"
+            :key="edu.id"
+            class="flex gap-4"
+          >
             <div
-              class="h-4 w-1/2 rounded mb-2"
+              class="w-12 h-12 rounded-lg flex-shrink-0 flex items-center justify-center"
               :class="templateStyles.sectionBg"
-            />
-            <div
-              class="h-3 w-1/3 rounded"
-              :class="templateStyles.sectionBg"
-            />
+            >
+              <UIcon
+                name="i-lucide-graduation-cap"
+                class="w-6 h-6"
+                :class="templateStyles.accent"
+              />
+            </div>
+            <div class="flex-1">
+              <h3
+                class="font-semibold"
+                :class="templateStyles.text"
+              >
+                {{ edu.school }}
+              </h3>
+              <p
+                class="text-sm"
+                :class="templateStyles.accent"
+              >
+                {{ edu.degree }}
+                <span v-if="edu.fieldOfStudy">, {{ edu.fieldOfStudy }}</span>
+              </p>
+              <p
+                class="text-sm mt-1"
+                :class="templateStyles.accent"
+              >
+                {{ formatDate(edu.startDate) }} — {{ edu.isCurrent ? 'Настоящее время' : formatDate(edu.endDate) }}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-      <p
-        class="text-sm mt-4 opacity-60"
-        :class="templateStyles.accent"
-      >
-        Образование будет добавлено позже
-      </p>
+        <p
+          v-if="education && education.length > MAX_PREVIEW_ITEMS"
+          class="text-sm mt-4 opacity-60"
+          :class="templateStyles.accent"
+        >
+          И ещё {{ education.length - MAX_PREVIEW_ITEMS }} записей...
+        </p>
+      </template>
+
+      <!-- Placeholder when no education -->
+      <template v-else>
+        <div class="space-y-4 opacity-50">
+          <div class="flex gap-4">
+            <div
+              class="w-12 h-12 rounded-lg flex-shrink-0"
+              :class="templateStyles.sectionBg"
+            />
+            <div class="flex-1">
+              <div
+                class="h-4 w-1/2 rounded mb-2"
+                :class="templateStyles.sectionBg"
+              />
+              <div
+                class="h-3 w-1/3 rounded"
+                :class="templateStyles.sectionBg"
+              />
+            </div>
+          </div>
+        </div>
+        <p
+          class="text-sm mt-4 opacity-60"
+          :class="templateStyles.accent"
+        >
+          Образование будет добавлено позже
+        </p>
+      </template>
     </div>
 
     <!-- Footer -->

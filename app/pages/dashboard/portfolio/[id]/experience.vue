@@ -326,15 +326,21 @@ useSeoMeta({
       @updated="handleExperienceUpdated"
     />
 
-    <!-- Delete Confirmation Modal -->
+    <!-- Delete Confirmation Modal - content wrapped in v-if to prevent rendering when closed -->
     <UModal v-model:open="isDeleteModalOpen">
-      <template #header>
+      <template
+        v-if="isDeleteModalOpen"
+        #header
+      >
         <h3 class="text-lg font-semibold">
           Удалить опыт работы?
         </h3>
       </template>
 
-      <div class="p-4">
+      <div
+        v-if="isDeleteModalOpen"
+        class="p-4"
+      >
         <p class="text-gray-600 dark:text-gray-400">
           Вы уверены, что хотите удалить эту запись?
         </p>
@@ -346,7 +352,10 @@ useSeoMeta({
         </p>
       </div>
 
-      <template #footer>
+      <template
+        v-if="isDeleteModalOpen"
+        #footer
+      >
         <div class="flex justify-end gap-2">
           <UButton
             label="Отмена"

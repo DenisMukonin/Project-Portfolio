@@ -36,7 +36,10 @@ function handleClose() {
     fullscreen
     @update:open="emit('update:open', $event)"
   >
-    <template #header>
+    <template
+      v-if="open"
+      #header
+    >
       <div class="flex items-center justify-between w-full">
         <h3 class="text-lg font-semibold">
           Предпросмотр: {{ template?.name }}
@@ -52,7 +55,10 @@ function handleClose() {
       </div>
     </template>
 
-    <div class="p-6 flex flex-col items-center">
+    <div
+      v-if="open"
+      class="p-6 flex flex-col items-center"
+    >
       <div class="w-full max-w-4xl">
         <TemplatePreview
           v-if="template"
@@ -66,7 +72,10 @@ function handleClose() {
       </p>
     </div>
 
-    <template #footer>
+    <template
+      v-if="open"
+      #footer
+    >
       <div class="flex justify-end gap-3">
         <UButton
           label="Закрыть"
