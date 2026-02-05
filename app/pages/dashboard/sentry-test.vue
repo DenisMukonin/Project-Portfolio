@@ -1,6 +1,19 @@
 <script setup lang="ts">
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const { $sentry } = useNuxtApp() as unknown as { $sentry: any }
+// Proper typing for Sentry client
+interface SentryPlugin {
+  captureMessage: (message: string, level?: string) => void
+  captureException: (error: Error) => void
+  setUser: (user: { id: string, email?: string, username?: string } | null) => void
+}
+
+const nuxtApp = useNuxtApp()
+const $sentry = nuxtApp.$sentry as SentryPlugin | undefined
+
+// SEO Meta (consistent with other pages)
+useSeoMeta({
+  title: 'Sentry Test',
+  description: 'Test page for Sentry error monitoring integration'
+})
 
 function triggerError() {
   throw new Error('Sentry Test Error: This is a deliberate error for testing purposes.')
@@ -27,11 +40,13 @@ function triggerCustomError() {
         Status
       </h2>
       <div class="flex items-center gap-2">
-        <div
-          class="w-3 h-3 rounded-full"
-          :class="$sentry ? 'bg-green-500' : 'bg-red-500'"
+        <UBadge
+          :color="$sentry ? 'success' : 'error'"
+          :label="$sentry ? 'Active' : 'Inactive'"
         />
-        <span>Sentry is {{ $sentry ? 'active' : 'inactive' }}</span>
+        <span class="text-sm text-gray-600 dark:text-gray-400">
+          Sentry is {{ $sentry ? 'initialized and ready' : 'not configured (no DSN)' }}
+        </span>
       </div>
     </div>
 
@@ -39,12 +54,14 @@ function triggerCustomError() {
       <UButton
         color="error"
         label="Throw Unhandled Error"
+        icon="i-lucide-alert-triangle"
         @click="triggerError"
       />
 
       <UButton
         color="primary"
         label="Send Custom Message"
+        icon="i-lucide-message-square"
         @click="triggerCustomError"
       />
     </div>

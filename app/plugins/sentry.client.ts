@@ -1,13 +1,23 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SentryClient = any
+// Sentry user context enrichment plugin
+// Sets user info when logged in for better error tracking
+
+interface SentryUser {
+  id: string
+  email?: string
+  username?: string
+}
+
+interface SentryPlugin {
+  setUser: (user: SentryUser | null) => void
+}
 
 export default defineNuxtPlugin((nuxtApp) => {
   const { loggedIn, user } = useUserSession()
-  const sentry = nuxtApp.$sentry as SentryClient | undefined
+  const sentry = nuxtApp.$sentry as SentryPlugin | undefined
 
   if (!sentry) return
 
-  // Wait for user session to be ready
+  // Set user context if already logged in
   if (loggedIn.value && user.value) {
     sentry.setUser({
       id: String(user.value.id),
