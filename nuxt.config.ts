@@ -4,7 +4,8 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/ui',
     'nuxt-auth-utils',
-    '@nuxt/image'
+    '@nuxt/image',
+    '@sentry/nuxt'
   ],
 
   devtools: {
@@ -38,6 +39,12 @@ export default defineNuxtConfig({
         clientId: '',
         clientSecret: ''
       }
+    },
+    public: {
+      sentry: {
+        dsn: process.env.NUXT_PUBLIC_SENTRY_DSN || '',
+        environment: process.env.NODE_ENV || 'development'
+      }
     }
   },
 
@@ -46,6 +53,12 @@ export default defineNuxtConfig({
     '/dashboard/**': { ssr: true },
     // Public portfolio pages with SWR caching (1 hour)
     '/p/**': { ssr: true, swr: 3600 }
+  },
+
+  // Enable sourcemaps for Sentry (Story 6.5)
+  sourcemap: {
+    server: true,
+    client: true
   },
 
   compatibilityDate: '2025-01-15',
@@ -67,5 +80,14 @@ export default defineNuxtConfig({
     quality: 80,
     // Preferred formats (modern browsers get webp/avif)
     format: ['webp', 'png']
+  },
+
+  // Sentry configuration (Story 6.5)
+  sentry: {
+    sourceMapsUploadOptions: {
+      org: process.env.SENTRY_ORG || 'portfolio-hub',
+      project: process.env.SENTRY_PROJECT || 'portfolio-hub',
+      authToken: process.env.SENTRY_AUTH_TOKEN
+    }
   }
 })

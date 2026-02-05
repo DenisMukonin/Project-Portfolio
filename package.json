@@ -19,6 +19,7 @@
     "@nuxt/image": "^2.0.0",
     "@nuxt/ui": "^4.4.0",
     "@octokit/rest": "^22.0.1",
+    "@sentry/nuxt": "^10.38.0",
     "@vueuse/integrations": "^14.2.0",
     "drizzle-orm": "^0.45.1",
     "nuxt": "^4.2.2",
