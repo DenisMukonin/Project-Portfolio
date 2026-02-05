@@ -9,6 +9,22 @@ const portfolioId = route.params.id as string
 
 const { data: portfolio, status, error, refresh } = await useFetch<Portfolio>(`/api/portfolios/${portfolioId}`)
 
+// Fetch analytics data (Story 6.2 - AC: #1)
+// M3 fix: Add error handling for analytics fetch
+interface AnalyticsData {
+  totalViews: number
+  thirtyDayViews: number
+  chartData: Array<{ date: string, views: number }>
+}
+const { data: analytics, status: analyticsStatus, error: analyticsError } = await useFetch<AnalyticsData>(
+  `/api/portfolios/${portfolioId}/analytics`
+)
+
+// Log analytics error but don't block page (graceful degradation)
+if (analyticsError.value) {
+  console.warn('Failed to load analytics:', analyticsError.value.message)
+}
+
 if (error.value) {
   throw createError({
     statusCode: error.value.statusCode || 404,
@@ -507,6 +523,15 @@ useSeoMeta({
             </div>
           </template>
         </UCard>
+
+        <!-- Analytics Card (Story 6.2 - AC: #1, #2, #3, #4, #5) -->
+        <AnalyticsCard
+          :total-views="analytics?.totalViews ?? 0"
+          :thirty-day-views="analytics?.thirtyDayViews ?? 0"
+          :chart-data="analytics?.chartData ?? []"
+          :loading="analyticsStatus === 'pending'"
+          :error="!!analyticsError"
+        />
 
         <UCard class="border border-red-500 dark:border-red-400">
           <template #header>
