@@ -5,7 +5,8 @@ import {
   UUID_REGEX,
   DATE_REGEX,
   parseAndValidateDate,
-  isFutureDate
+  isFutureDate,
+  toDbDate
 } from '~~/server/utils/experienceValidation'
 import {
   MAX_SCHOOL,
@@ -176,8 +177,8 @@ export default defineEventHandler(async (event) => {
       school: school.trim(),
       degree: degree.trim(),
       fieldOfStudy: safeFieldOfStudy || null,
-      startDate: startDate.trim(),
-      endDate: safeEndDate,
+      startDate: toDbDate(startDate.trim()),
+      endDate: safeEndDate ? toDbDate(safeEndDate) : null,
       isCurrent: isCurrentlyEnrolled,
       description: safeDescription || null,
       orderIndex: nextOrderIndex

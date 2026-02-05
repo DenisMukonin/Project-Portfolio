@@ -44,11 +44,12 @@ export function parseAndValidateDate(dateStr: string): Date | null {
 
 /**
  * Checks if date is in the future compared to current date.
+ * Uses UTC comparison to avoid timezone issues.
  */
 export function isFutureDate(date: Date): boolean {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  return date > today
+  const now = new Date()
+  const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+  return date > todayUTC
 }
 
 // Max length validation constants
@@ -56,3 +57,11 @@ export const MAX_TITLE = 100
 export const MAX_COMPANY = 100
 export const MAX_LOCATION = 100
 export const MAX_DESCRIPTION = 1000
+
+/**
+ * Converts YYYY-MM format to YYYY-MM-01 for PostgreSQL DATE type.
+ * Returns the date as-is if already in YYYY-MM-DD format.
+ */
+export function toDbDate(dateStr: string): string {
+  return dateStr.length === 7 ? `${dateStr}-01` : dateStr
+}

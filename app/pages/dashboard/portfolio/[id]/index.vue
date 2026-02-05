@@ -613,30 +613,18 @@ useSeoMeta({
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal - content wrapped in v-if to prevent rendering when closed -->
-    <UModal v-model:open="showDeleteDialog">
-      <template
-        v-if="showDeleteDialog"
-        #header
-      >
-        <h3 class="text-lg font-semibold text-red-600 dark:text-red-400">
-          Удалить портфолио?
-        </h3>
-      </template>
-
-      <div
-        v-if="showDeleteDialog"
-        class="p-4"
-      >
+    <!-- Delete Confirmation Modal -->
+    <UModal
+      v-model:open="showDeleteDialog"
+      title="Удалить портфолио?"
+    >
+      <template #body>
         <p class="text-gray-600 dark:text-gray-400">
           Вы уверены, что хотите удалить "{{ portfolio?.title }}"? Это действие необратимо.
         </p>
-      </div>
+      </template>
 
-      <template
-        v-if="showDeleteDialog"
-        #footer
-      >
+      <template #footer>
         <div class="flex justify-end gap-2">
           <UButton
             label="Отмена"
@@ -655,33 +643,21 @@ useSeoMeta({
       </template>
     </UModal>
 
-    <!-- Template Selector Modal - content wrapped in v-if to prevent rendering when closed -->
-    <UModal v-model:open="showTemplateModal">
-      <template
-        v-if="showTemplateModal"
-        #header
-      >
-        <h3 class="text-lg font-semibold">
-          Выберите шаблон
-        </h3>
-      </template>
-
-      <div
-        v-if="showTemplateModal"
-        class="p-4"
-      >
+    <!-- Template Selector Modal -->
+    <UModal
+      v-model:open="showTemplateModal"
+      title="Выберите шаблон"
+    >
+      <template #body>
         <TemplateSelector
           :current-template="portfolio?.template ?? 'minimal'"
           :loading="isChangingTemplate"
           @select="handleTemplateSelect"
           @preview="handleTemplatePreview"
         />
-      </div>
+      </template>
 
-      <template
-        v-if="showTemplateModal"
-        #footer
-      >
+      <template #footer>
         <div class="flex justify-end">
           <UButton
             label="Отмена"

@@ -6,6 +6,7 @@ import {
   DATE_REGEX,
   parseAndValidateDate,
   isFutureDate,
+  toDbDate,
   MAX_TITLE,
   MAX_COMPANY,
   MAX_LOCATION,
@@ -174,8 +175,8 @@ export default defineEventHandler(async (event) => {
       title: title.trim(),
       company: company.trim(),
       location: safeLocation || null,
-      startDate,
-      endDate: safeEndDate,
+      startDate: toDbDate(startDate),
+      endDate: safeEndDate ? toDbDate(safeEndDate) : null,
       isCurrent: isCurrentJob,
       description: safeDescription || null,
       orderIndex: nextOrderIndex

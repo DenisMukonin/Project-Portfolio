@@ -5,6 +5,7 @@ import {
   UUID_REGEX,
   parseAndValidateDate,
   isFutureDate,
+  toDbDate,
   MAX_TITLE,
   MAX_COMPANY,
   MAX_LOCATION,
@@ -156,7 +157,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    updateData.startDate = startDate.trim()
+    updateData.startDate = toDbDate(startDate.trim())
   }
 
   // Validate and set endDate
@@ -186,7 +187,7 @@ export default defineEventHandler(async (event) => {
           })
         }
 
-        updateData.endDate = endDate.trim()
+        updateData.endDate = toDbDate(endDate.trim())
       } else {
         // Allow clearing endDate by setting to null
         updateData.endDate = null

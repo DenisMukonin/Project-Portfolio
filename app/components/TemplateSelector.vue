@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TEMPLATES, type TemplateDefinition } from '~~/shared/templates'
+import { TEMPLATES, type TemplateDefinition } from '../../shared/templates'
 
 defineProps<{
   currentTemplate: string

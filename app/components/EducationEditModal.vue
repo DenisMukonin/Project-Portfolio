@@ -192,19 +192,18 @@ function onModalUpdate(value: boolean) {
           required
           :error="errors.startDate"
         >
-          <UInput
+          <MonthYearPicker
             v-model="form.startDate"
-            type="month"
+            placeholder="Выберите дату"
             :disabled="isSubmitting"
           />
         </UFormField>
 
         <UFormField label="Дата окончания">
-          <UInput
+          <MonthYearPicker
             v-model="form.endDate"
-            type="month"
+            :placeholder="form.isCurrent ? 'Настоящее время' : 'Выберите дату'"
             :disabled="isSubmitting || form.isCurrent"
-            :placeholder="form.isCurrent ? 'Настоящее время' : ''"
           />
         </UFormField>
       </div>
