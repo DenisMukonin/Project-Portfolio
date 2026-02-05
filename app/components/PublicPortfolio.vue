@@ -142,6 +142,13 @@ const hasSocialLinks = computed(() =>
   || props.user?.socialLinks?.website
 )
 
+// Avatar error state (Story 6.3 - error handling for image load failure)
+const avatarError = ref(false)
+
+function handleAvatarError() {
+  avatarError.value = true
+}
+
 // Date formatting helper
 function formatDate(date: string | null): string {
   if (!date) return ''
@@ -159,17 +166,24 @@ function formatDate(date: string | null): string {
   >
     <!-- Hero Section -->
     <div class="flex flex-col items-center justify-center p-8 md:p-12 lg:p-16 text-center">
-      <!-- Avatar -->
+      <!-- Avatar (Story 6.3 - Optimized with NuxtImg, eager for LCP) -->
       <div
         class="w-24 h-24 md:w-32 md:h-32 rounded-full mb-6 flex items-center justify-center overflow-hidden"
         :class="avatarStyles"
       >
-        <img
-          v-if="user?.avatarUrl"
+        <NuxtImg
+          v-if="user?.avatarUrl && !avatarError"
           :src="user.avatarUrl"
           :alt="displayTitle"
+          width="128"
+          height="128"
+          loading="eager"
+          fetchpriority="high"
+          format="webp"
+          quality="80"
           class="w-full h-full object-cover"
-        >
+          @error="handleAvatarError"
+        />
         <UIcon
           v-else
           name="i-lucide-user"
