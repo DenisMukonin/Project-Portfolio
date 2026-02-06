@@ -329,36 +329,29 @@ useSeoMeta({
       @updated="handleEducationUpdated"
     />
 
-    <!-- Delete Confirmation Modal - content wrapped in v-if to prevent rendering when closed -->
+    <!-- Delete Confirmation Modal -->
     <UModal v-model:open="isDeleteModalOpen">
-      <template
-        v-if="isDeleteModalOpen"
-        #header
-      >
+      <template #header>
         <h3 class="text-lg font-semibold">
           Удалить образование?
         </h3>
       </template>
 
-      <div
-        v-if="isDeleteModalOpen"
-        class="p-4"
-      >
-        <p class="text-gray-600 dark:text-gray-400">
-          Вы уверены, что хотите удалить эту запись?
-        </p>
-        <p
-          v-if="deletingEducation"
-          class="mt-2 font-medium"
-        >
-          {{ deletingEducation.school }} — {{ deletingEducation.degree }}
-        </p>
-      </div>
+      <template #body>
+        <div class="p-4">
+          <p class="text-gray-600 dark:text-gray-400">
+            Вы уверены, что хотите удалить эту запись?
+          </p>
+          <p
+            v-if="deletingEducation"
+            class="mt-2 font-medium"
+          >
+            {{ deletingEducation.school }} — {{ deletingEducation.degree }}
+          </p>
+        </div>
+      </template>
 
-      <template
-        v-if="isDeleteModalOpen"
-        #footer
-      >
+      <template #footer>
         <div class="flex justify-end gap-2">
           <UButton
             label="Отмена"

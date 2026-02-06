@@ -86,10 +86,7 @@ watch(() => props.open, (isOpen) => {
     fullscreen
     @update:open="emit('update:open', $event)"
   >
-    <template
-      v-if="open"
-      #header
-    >
+    <template #header>
       <div class="flex items-center justify-between w-full">
         <div class="flex items-center gap-4">
           <h3 class="text-lg font-semibold">
@@ -128,57 +125,55 @@ watch(() => props.open, (isOpen) => {
       </div>
     </template>
 
-    <div
-      v-if="open"
-      id="portfolio-preview-content"
-      class="p-6 flex flex-col items-center overflow-auto bg-gray-100 dark:bg-gray-950 min-h-full"
-      aria-describedby="preview-description"
-    >
-      <!-- Preview container with dynamic width -->
-      <div :class="containerClass">
-        <PortfolioPreview
-          v-if="template"
-          :template="template"
-          :portfolio-data="portfolioData"
-          :user-title="userTitle"
-          :user-bio="userBio"
-          :user-social-links="userSocialLinks"
-          :user-avatar-url="userAvatarUrl"
-          :projects="projects"
-          :experiences="experiences"
-          :education="education"
-        />
-        <!-- Fallback message when template is not available -->
-        <div
-          v-else
-          class="w-full min-h-[400px] rounded-lg bg-gray-200 dark:bg-gray-800 flex items-center justify-center"
+    <template #body>
+      <div
+        id="portfolio-preview-content"
+        class="p-6 flex flex-col items-center overflow-auto bg-gray-100 dark:bg-gray-950 min-h-full"
+        aria-describedby="preview-description"
+      >
+        <!-- Preview container with dynamic width -->
+        <div :class="containerClass">
+          <PortfolioPreview
+            v-if="template"
+            :template="template"
+            :portfolio-data="portfolioData"
+            :user-title="userTitle"
+            :user-bio="userBio"
+            :user-social-links="userSocialLinks"
+            :user-avatar-url="userAvatarUrl"
+            :projects="projects"
+            :experiences="experiences"
+            :education="education"
+          />
+          <!-- Fallback message when template is not available -->
+          <div
+            v-else
+            class="w-full min-h-[400px] rounded-lg bg-gray-200 dark:bg-gray-800 flex items-center justify-center"
+          >
+            <p class="text-gray-500 dark:text-gray-400">
+              Шаблон не найден. Пожалуйста, выберите шаблон.
+            </p>
+          </div>
+        </div>
+
+        <p
+          id="preview-description"
+          class="mt-6 text-sm text-gray-500 dark:text-gray-400 text-center"
         >
-          <p class="text-gray-500 dark:text-gray-400">
-            Шаблон не найден. Пожалуйста, выберите шаблон.
-          </p>
+          Это предварительный просмотр. Так ваше портфолио будет выглядеть для посетителей.
+        </p>
+
+        <!-- Mobile indicator -->
+        <div
+          v-if="viewMode === 'mobile'"
+          class="mt-2 text-xs text-gray-400 dark:text-gray-500 text-center"
+        >
+          Ширина: 375px (iPhone SE)
         </div>
       </div>
+    </template>
 
-      <p
-        id="preview-description"
-        class="mt-6 text-sm text-gray-500 dark:text-gray-400 text-center"
-      >
-        Это предварительный просмотр. Так ваше портфолио будет выглядеть для посетителей.
-      </p>
-
-      <!-- Mobile indicator -->
-      <div
-        v-if="viewMode === 'mobile'"
-        class="mt-2 text-xs text-gray-400 dark:text-gray-500 text-center"
-      >
-        Ширина: 375px (iPhone SE)
-      </div>
-    </div>
-
-    <template
-      v-if="open"
-      #footer
-    >
+    <template #footer>
       <div class="flex justify-end">
         <UButton
           label="Закрыть"

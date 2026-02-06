@@ -147,83 +147,85 @@ function onModalUpdate(value: boolean) {
       </h3>
     </template>
 
-    <form
-      class="p-4 space-y-4"
-      @submit.prevent="handleSubmit"
-    >
-      <UFormField
-        label="Учебное заведение"
-        required
-        :error="errors.school"
+    <template #body>
+      <form
+        class="p-4 space-y-4"
+        @submit.prevent="handleSubmit"
       >
-        <UInput
-          v-model="form.school"
-          placeholder="Московский государственный университет"
-          :disabled="isSubmitting"
-          maxlength="100"
-        />
-      </UFormField>
-
-      <UFormField
-        label="Степень"
-        required
-        :error="errors.degree"
-      >
-        <UInput
-          v-model="form.degree"
-          placeholder="Бакалавр"
-          :disabled="isSubmitting"
-          maxlength="100"
-        />
-      </UFormField>
-
-      <UFormField label="Специальность">
-        <UInput
-          v-model="form.fieldOfStudy"
-          placeholder="Компьютерные науки"
-          :disabled="isSubmitting"
-          maxlength="100"
-        />
-      </UFormField>
-
-      <div class="grid grid-cols-2 gap-4">
         <UFormField
-          label="Дата начала"
+          label="Учебное заведение"
           required
-          :error="errors.startDate"
+          :error="errors.school"
         >
-          <MonthYearPicker
-            v-model="form.startDate"
-            placeholder="Выберите дату"
+          <UInput
+            v-model="form.school"
+            placeholder="Московский государственный университет"
             :disabled="isSubmitting"
+            maxlength="100"
           />
         </UFormField>
 
-        <UFormField label="Дата окончания">
-          <MonthYearPicker
-            v-model="form.endDate"
-            :placeholder="form.isCurrent ? 'Настоящее время' : 'Выберите дату'"
-            :disabled="isSubmitting || form.isCurrent"
+        <UFormField
+          label="Степень"
+          required
+          :error="errors.degree"
+        >
+          <UInput
+            v-model="form.degree"
+            placeholder="Бакалавр"
+            :disabled="isSubmitting"
+            maxlength="100"
           />
         </UFormField>
-      </div>
 
-      <UCheckbox
-        v-model="form.isCurrent"
-        label="Сейчас учусь"
-        :disabled="isSubmitting"
-      />
+        <UFormField label="Специальность">
+          <UInput
+            v-model="form.fieldOfStudy"
+            placeholder="Компьютерные науки"
+            :disabled="isSubmitting"
+            maxlength="100"
+          />
+        </UFormField>
 
-      <UFormField label="Описание">
-        <UTextarea
-          v-model="form.description"
-          placeholder="Дополнительная информация об образовании..."
-          :rows="4"
+        <div class="grid grid-cols-2 gap-4">
+          <UFormField
+            label="Дата начала"
+            required
+            :error="errors.startDate"
+          >
+            <MonthYearPicker
+              v-model="form.startDate"
+              placeholder="Выберите дату"
+              :disabled="isSubmitting"
+            />
+          </UFormField>
+
+          <UFormField label="Дата окончания">
+            <MonthYearPicker
+              v-model="form.endDate"
+              :placeholder="form.isCurrent ? 'Настоящее время' : 'Выберите дату'"
+              :disabled="isSubmitting || form.isCurrent"
+            />
+          </UFormField>
+        </div>
+
+        <UCheckbox
+          v-model="form.isCurrent"
+          label="Сейчас учусь"
           :disabled="isSubmitting"
-          maxlength="1000"
         />
-      </UFormField>
-    </form>
+
+        <UFormField label="Описание">
+          <UTextarea
+            v-model="form.description"
+            placeholder="Дополнительная информация об образовании..."
+            :rows="4"
+            :disabled="isSubmitting"
+            maxlength="1000"
+          />
+        </UFormField>
+      </form>
+    </template>
 
     <template #footer>
       <div class="flex justify-end gap-2">

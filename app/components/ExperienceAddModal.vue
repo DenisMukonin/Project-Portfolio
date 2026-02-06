@@ -142,83 +142,85 @@ function onModalUpdate(value: boolean) {
       </h3>
     </template>
 
-    <form
-      class="p-4 space-y-4"
-      @submit.prevent="handleSubmit"
-    >
-      <UFormField
-        label="Должность"
-        required
-        :error="errors.title"
+    <template #body>
+      <form
+        class="p-4 space-y-4"
+        @submit.prevent="handleSubmit"
       >
-        <UInput
-          v-model="form.title"
-          placeholder="Senior Frontend Developer"
-          :disabled="isSubmitting"
-          maxlength="100"
-        />
-      </UFormField>
-
-      <UFormField
-        label="Компания"
-        required
-        :error="errors.company"
-      >
-        <UInput
-          v-model="form.company"
-          placeholder="Acme Corporation"
-          :disabled="isSubmitting"
-          maxlength="100"
-        />
-      </UFormField>
-
-      <UFormField label="Местоположение">
-        <UInput
-          v-model="form.location"
-          placeholder="Москва, Россия"
-          :disabled="isSubmitting"
-          maxlength="100"
-        />
-      </UFormField>
-
-      <div class="grid grid-cols-2 gap-4">
         <UFormField
-          label="Дата начала"
+          label="Должность"
           required
-          :error="errors.startDate"
+          :error="errors.title"
         >
-          <MonthYearPicker
-            v-model="form.startDate"
-            placeholder="Выберите дату"
+          <UInput
+            v-model="form.title"
+            placeholder="Senior Frontend Developer"
             :disabled="isSubmitting"
+            maxlength="100"
           />
         </UFormField>
 
-        <UFormField label="Дата окончания">
-          <MonthYearPicker
-            v-model="form.endDate"
-            :placeholder="form.isCurrent ? 'Настоящее время' : 'Выберите дату'"
-            :disabled="isSubmitting || form.isCurrent"
+        <UFormField
+          label="Компания"
+          required
+          :error="errors.company"
+        >
+          <UInput
+            v-model="form.company"
+            placeholder="Acme Corporation"
+            :disabled="isSubmitting"
+            maxlength="100"
           />
         </UFormField>
-      </div>
 
-      <UCheckbox
-        v-model="form.isCurrent"
-        label="Это моя текущая работа"
-        :disabled="isSubmitting"
-      />
+        <UFormField label="Местоположение">
+          <UInput
+            v-model="form.location"
+            placeholder="Москва, Россия"
+            :disabled="isSubmitting"
+            maxlength="100"
+          />
+        </UFormField>
 
-      <UFormField label="Описание">
-        <UTextarea
-          v-model="form.description"
-          placeholder="Опишите ваши обязанности и достижения..."
-          :rows="4"
+        <div class="grid grid-cols-2 gap-4">
+          <UFormField
+            label="Дата начала"
+            required
+            :error="errors.startDate"
+          >
+            <MonthYearPicker
+              v-model="form.startDate"
+              placeholder="Выберите дату"
+              :disabled="isSubmitting"
+            />
+          </UFormField>
+
+          <UFormField label="Дата окончания">
+            <MonthYearPicker
+              v-model="form.endDate"
+              :placeholder="form.isCurrent ? 'Настоящее время' : 'Выберите дату'"
+              :disabled="isSubmitting || form.isCurrent"
+            />
+          </UFormField>
+        </div>
+
+        <UCheckbox
+          v-model="form.isCurrent"
+          label="Это моя текущая работа"
           :disabled="isSubmitting"
-          maxlength="1000"
         />
-      </UFormField>
-    </form>
+
+        <UFormField label="Описание">
+          <UTextarea
+            v-model="form.description"
+            placeholder="Опишите ваши обязанности и достижения..."
+            :rows="4"
+            :disabled="isSubmitting"
+            maxlength="1000"
+          />
+        </UFormField>
+      </form>
+    </template>
 
     <template #footer>
       <div class="flex justify-end gap-2">
